@@ -1,0 +1,1 @@
+/home/sunrise/digua_ws/build/astra_camera_msgs/rosidl_generator_cpp/astra_camera_msgs/msg/rosidl_generator_cpp__visibility_control.hpp

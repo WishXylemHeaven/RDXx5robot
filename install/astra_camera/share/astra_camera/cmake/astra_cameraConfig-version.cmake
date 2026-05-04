@@ -1,0 +1,1 @@
+/home/sunrise/digua_ws/build/astra_camera/ament_cmake_core/astra_cameraConfig-version.cmake

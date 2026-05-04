@@ -1,0 +1,40 @@
+running egg_info
+creating ../../build/base_control_ros2/base_control_ros2.egg-info
+writing ../../build/base_control_ros2/base_control_ros2.egg-info/PKG-INFO
+writing dependency_links to ../../build/base_control_ros2/base_control_ros2.egg-info/dependency_links.txt
+writing entry points to ../../build/base_control_ros2/base_control_ros2.egg-info/entry_points.txt
+writing requirements to ../../build/base_control_ros2/base_control_ros2.egg-info/requires.txt
+writing top-level names to ../../build/base_control_ros2/base_control_ros2.egg-info/top_level.txt
+writing manifest file '../../build/base_control_ros2/base_control_ros2.egg-info/SOURCES.txt'
+reading manifest file '../../build/base_control_ros2/base_control_ros2.egg-info/SOURCES.txt'
+writing manifest file '../../build/base_control_ros2/base_control_ros2.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/sunrise/digua_ws/build/base_control_ros2/build/lib/base_control_ros2
+copying base_control_ros2/test_node.py -> /home/sunrise/digua_ws/build/base_control_ros2/build/lib/base_control_ros2
+copying base_control_ros2/__init__.py -> /home/sunrise/digua_ws/build/base_control_ros2/build/lib/base_control_ros2
+copying base_control_ros2/base_control_ros2.py -> /home/sunrise/digua_ws/build/base_control_ros2/build/lib/base_control_ros2
+copying base_control_ros2/loopqueue.py -> /home/sunrise/digua_ws/build/base_control_ros2/build/lib/base_control_ros2
+running install
+running install_lib
+creating /home/sunrise/digua_ws/install/base_control_ros2/lib/python3.10/site-packages/base_control_ros2
+copying /home/sunrise/digua_ws/build/base_control_ros2/build/lib/base_control_ros2/test_node.py -> /home/sunrise/digua_ws/install/base_control_ros2/lib/python3.10/site-packages/base_control_ros2
+copying /home/sunrise/digua_ws/build/base_control_ros2/build/lib/base_control_ros2/__init__.py -> /home/sunrise/digua_ws/install/base_control_ros2/lib/python3.10/site-packages/base_control_ros2
+copying /home/sunrise/digua_ws/build/base_control_ros2/build/lib/base_control_ros2/base_control_ros2.py -> /home/sunrise/digua_ws/install/base_control_ros2/lib/python3.10/site-packages/base_control_ros2
+copying /home/sunrise/digua_ws/build/base_control_ros2/build/lib/base_control_ros2/loopqueue.py -> /home/sunrise/digua_ws/install/base_control_ros2/lib/python3.10/site-packages/base_control_ros2
+byte-compiling /home/sunrise/digua_ws/install/base_control_ros2/lib/python3.10/site-packages/base_control_ros2/test_node.py to test_node.cpython-310.pyc
+byte-compiling /home/sunrise/digua_ws/install/base_control_ros2/lib/python3.10/site-packages/base_control_ros2/__init__.py to __init__.cpython-310.pyc
+byte-compiling /home/sunrise/digua_ws/install/base_control_ros2/lib/python3.10/site-packages/base_control_ros2/base_control_ros2.py to base_control_ros2.cpython-310.pyc
+byte-compiling /home/sunrise/digua_ws/install/base_control_ros2/lib/python3.10/site-packages/base_control_ros2/loopqueue.py to loopqueue.cpython-310.pyc
+running install_data
+creating /home/sunrise/digua_ws/install/base_control_ros2/share/ament_index/resource_index/packages
+copying resource/base_control_ros2 -> /home/sunrise/digua_ws/install/base_control_ros2/share/ament_index/resource_index/packages
+copying package.xml -> /home/sunrise/digua_ws/install/base_control_ros2/share/base_control_ros2
+creating /home/sunrise/digua_ws/install/base_control_ros2/share/base_control_ros2/launch
+copying launch/base_control.launch.py -> /home/sunrise/digua_ws/install/base_control_ros2/share/base_control_ros2/launch
+running install_egg_info
+Copying ../../build/base_control_ros2/base_control_ros2.egg-info to /home/sunrise/digua_ws/install/base_control_ros2/lib/python3.10/site-packages/base_control_ros2-0.1.0-py3.10.egg-info
+running install_scripts
+Installing base_control_node script to /home/sunrise/digua_ws/install/base_control_ros2/lib/base_control_ros2
+Installing test_node script to /home/sunrise/digua_ws/install/base_control_ros2/lib/base_control_ros2
+writing list of installed files to '/home/sunrise/digua_ws/build/base_control_ros2/install.log'

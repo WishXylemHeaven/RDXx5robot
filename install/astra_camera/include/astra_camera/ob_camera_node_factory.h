@@ -1,0 +1,1 @@
+/home/sunrise/digua_ws/src/ros2_astra_camera/astra_camera/include/astra_camera/ob_camera_node_factory.h

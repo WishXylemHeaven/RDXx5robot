@@ -1,0 +1,1 @@
+/home/sunrise/digua_ws/build/digua_bringup/ament_cmake_environment_hooks/local_setup.zsh

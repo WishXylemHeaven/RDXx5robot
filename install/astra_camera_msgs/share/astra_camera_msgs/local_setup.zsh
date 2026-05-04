@@ -1,0 +1,1 @@
+/home/sunrise/digua_ws/build/astra_camera_msgs/ament_cmake_environment_hooks/local_setup.zsh

@@ -1,0 +1,1 @@
+/home/sunrise/digua_ws/build/astra_camera_msgs/rosidl_cmake/rosidl_cmake-extras.cmake
