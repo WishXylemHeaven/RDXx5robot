@@ -1,0 +1,34 @@
+ydlidar_ros2_driver_node:
+  ros__parameters:
+    port: /dev/ttyUSB0
+    frame_id: laser_frame
+    ignore_array: ""
+    baudrate: 115200
+    lidar_type: 1
+    device_type: 0
+    sample_rate: 3
+    abnormal_check_count: 4
+
+    # 关闭固定分辨率，避免刷屏：
+    # Real point count xxx > fixed point count 320
+    fixed_resolution: false
+
+    reversion: true
+    inverted: true
+    auto_reconnect: true
+    isSingleChannel: true
+    intensity: false
+    support_motor_dtr: true
+
+    angle_max: 180.0
+    angle_min: -180.0
+
+    # YDLIDAR X2 标称有效测距约 0.12m ~ 8m
+    range_max: 8.0
+    range_min: 0.1
+
+    # X2 推荐扫描频率约 6Hz
+    # 如果实际 /scan 仍是 10~12Hz，说明电机速度主要由硬件控制，暂时不影响验证
+    frequency: 6.0
+
+    invalid_range_is_inf: false

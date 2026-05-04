@@ -1,0 +1,27 @@
+<launch>
+    <arg name="approx_sync" default="true"/>
+    <arg name="sync_queue_size" default="10"/>
+    <arg name="topic_queue_size" default="10"/>
+    <arg name="approx_sync_max_interval" default="0.05"/>
+
+    <arg name="rgb_image_topic" default="/camera/color/image_raw"/>
+    <arg name="depth_image_topic" default="/camera/depth/image_raw"/>
+    <arg name="rgb_camera_info_topic" default="/camera/color/camera_info"/>
+    <arg name="rgbd_image_topic" default="/camera/rgbd_image"/>
+
+    <node pkg="rtabmap_sync"
+          exec="rgbd_sync"
+          name="rgbd_sync"
+          output="screen">
+
+        <param name="approx_sync" value="$(var approx_sync)"/>
+        <param name="sync_queue_size" value="$(var sync_queue_size)"/>
+        <param name="topic_queue_size" value="$(var topic_queue_size)"/>
+        <param name="approx_sync_max_interval" value="$(var approx_sync_max_interval)"/>
+
+        <remap from="rgb/image" to="$(var rgb_image_topic)"/>
+        <remap from="depth/image" to="$(var depth_image_topic)"/>
+        <remap from="rgb/camera_info" to="$(var rgb_camera_info_topic)"/>
+        <remap from="rgbd_image" to="$(var rgbd_image_topic)"/>
+    </node>
+</launch>
