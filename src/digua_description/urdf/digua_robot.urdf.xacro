@@ -1,0 +1,220 @@
+<?xml version="1.0"?>
+<robot name="digua_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!--
+    Digua RDK X5 Robot URDF
+
+    Coordinate convention:
+      +X: forward
+      +Y: left
+      +Z: up
+
+    base_footprint:
+      Projection of the rear axle center on the ground.
+
+    base_link:
+      Directly above base_footprint at the center height of the chassis.
+  -->
+
+  <!-- ========================= -->
+  <!-- Basic dimensions           -->
+  <!-- ========================= -->
+
+  <xacro:property name="base_link_z" value="0.068"/>
+
+  <!-- Chassis visual size, only for RViz display -->
+  <xacro:property name="chassis_length" value="0.34"/>
+  <xacro:property name="chassis_width"  value="0.22"/>
+  <xacro:property name="chassis_height" value="0.035"/>
+
+  <!-- Sensor positions relative to base_link -->
+  <xacro:property name="lidar_x" value="0.100"/>
+  <xacro:property name="lidar_y" value="0.000"/>
+  <xacro:property name="lidar_z" value="0.072"/>
+
+  <xacro:property name="camera_x" value="0.170"/>
+  <xacro:property name="camera_y" value="0.000"/>
+  <xacro:property name="camera_z" value="0.022"/>
+
+  <xacro:property name="imu_x" value="0.006"/>
+  <xacro:property name="imu_y" value="0.028"/>
+  <xacro:property name="imu_z" value="0.022"/>
+
+  <!-- ========================= -->
+  <!-- Materials                  -->
+  <!-- ========================= -->
+
+  <material name="black">
+    <color rgba="0.02 0.02 0.02 1.0"/>
+  </material>
+
+  <material name="gray">
+    <color rgba="0.45 0.45 0.45 1.0"/>
+  </material>
+
+  <material name="dark_gray">
+    <color rgba="0.15 0.15 0.15 1.0"/>
+  </material>
+
+  <material name="blue">
+    <color rgba="0.0 0.25 0.9 1.0"/>
+  </material>
+
+  <material name="green">
+    <color rgba="0.0 0.7 0.25 1.0"/>
+  </material>
+
+  <material name="red">
+    <color rgba="0.9 0.0 0.0 1.0"/>
+  </material>
+
+  <!-- ========================= -->
+  <!-- Links                      -->
+  <!-- ========================= -->
+
+  <!-- Ground projection frame -->
+  <link name="base_footprint"/>
+
+  <!-- Main robot body frame -->
+  <link name="base_link">
+    <visual>
+      <!-- Make the visual chassis extend mostly forward from the rear axle -->
+      <origin xyz="0.09 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+  </link>
+
+  <!-- YDLIDAR X2 frame -->
+  <link name="laser_frame">
+    <visual>
+      <origin xyz="0 0 0.025" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.035" length="0.05"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+
+  <!-- Astra S camera base frame.
+       Do NOT define color/depth/optical frames here.
+       Let astra_camera publish its own internal camera frames. -->
+  <link name="camera_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.075 0.025 0.025"/>
+      </geometry>
+      <material name="dark_gray"/>
+    </visual>
+  </link>
+
+  <!-- IMU frame -->
+  <link name="imu">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.025 0.018 0.006"/>
+      </geometry>
+      <material name="green"/>
+    </visual>
+  </link>
+
+  <!-- Optional simple wheel visuals, only for RViz display -->
+  <link name="front_left_wheel_visual">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.045" length="0.025"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+
+  <link name="front_right_wheel_visual">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.045" length="0.025"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+
+  <link name="rear_left_wheel_visual">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.045" length="0.025"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+
+  <link name="rear_right_wheel_visual">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.045" length="0.025"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+
+  <!-- ========================= -->
+  <!-- Fixed joints               -->
+  <!-- ========================= -->
+
+  <joint name="base_footprint_to_base_link" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 ${base_link_z}" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="base_link_to_laser_frame" type="fixed">
+    <parent link="base_link"/>
+    <child link="laser_frame"/>
+    <origin xyz="${lidar_x} ${lidar_y} ${lidar_z}" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="base_link_to_camera_link" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+    <origin xyz="${camera_x} ${camera_y} ${camera_z}" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="base_link_to_imu" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu"/>
+    <origin xyz="${imu_x} ${imu_y} ${imu_z}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Wheel visuals relative to base_link.
+       Rear axle center is directly below base_link, so rear wheels are near x=0. -->
+  <joint name="base_link_to_front_left_wheel_visual" type="fixed">
+    <parent link="base_link"/>
+    <child link="front_left_wheel_visual"/>
+    <origin xyz="0.22 0.105 -0.068" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="base_link_to_front_right_wheel_visual" type="fixed">
+    <parent link="base_link"/>
+    <child link="front_right_wheel_visual"/>
+    <origin xyz="0.22 -0.105 -0.068" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="base_link_to_rear_left_wheel_visual" type="fixed">
+    <parent link="base_link"/>
+    <child link="rear_left_wheel_visual"/>
+    <origin xyz="0.00 0.105 -0.068" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="base_link_to_rear_right_wheel_visual" type="fixed">
+    <parent link="base_link"/>
+    <child link="rear_right_wheel_visual"/>
+    <origin xyz="0.00 -0.105 -0.068" rpy="0 0 0"/>
+  </joint>
+
+</robot>

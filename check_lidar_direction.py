@@ -2,92 +2,71 @@
 import math
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from sensor_msgs.msg import LaserScan
+from rclpy.qos import qos_profile_sensor_data
+
+
+def angle_diff(a, b):
+    d = a - b
+    while d > math.pi:
+        d -= 2.0 * math.pi
+    while d < -math.pi:
+        d += 2.0 * math.pi
+    return d
 
 
 class LidarDirectionChecker(Node):
     def __init__(self):
         super().__init__('lidar_direction_checker')
-
-        # LaserScan 常见 QoS 是 Best Effort。
-        # 如果这里用默认 Reliable，就会出现：
-        # offering incompatible QoS. Last incompatible policy: RELIABILITY
-        scan_qos = QoSProfile(
-            reliability=QoSReliabilityPolicy.BEST_EFFORT,
-            history=QoSHistoryPolicy.KEEP_LAST,
-            depth=10
-        )
-
         self.sub = self.create_subscription(
             LaserScan,
             '/scan',
-            self.callback,
-            scan_qos
+            self.cb,
+            qos_profile_sensor_data
         )
 
-    def get_min_range_near_angle(self, msg, target_deg, window_deg=8):
-        target_rad = math.radians(target_deg)
-        values = []
+    def sector_min(self, msg, center_deg, width_deg=15.0):
+        center = math.radians(center_deg)
+        width = math.radians(width_deg)
+        vals = []
 
         for i, r in enumerate(msg.ranges):
+            if not math.isfinite(r):
+                continue
+            if r < msg.range_min or r > msg.range_max:
+                continue
+
             angle = msg.angle_min + i * msg.angle_increment
+            if abs(angle_diff(angle, center)) <= width:
+                vals.append(r)
 
-            # 计算当前角度和目标角度的最小差值，避免 180/-180 边界问题
-            diff = math.atan2(
-                math.sin(angle - target_rad),
-                math.cos(angle - target_rad)
-            )
-
-            if abs(math.degrees(diff)) <= window_deg:
-                if math.isfinite(r) and msg.range_min < r < msg.range_max:
-                    values.append(r)
-
-        if not values:
+        if not vals:
             return None
+        return min(vals)
 
-        return min(values)
-
-    def callback(self, msg):
-        front = self.get_min_range_near_angle(msg, 0)
-        left = self.get_min_range_near_angle(msg, 90)
-        back = self.get_min_range_near_angle(msg, 180)
-        right = self.get_min_range_near_angle(msg, -90)
+    def cb(self, msg):
+        front = self.sector_min(msg, 0)
+        left = self.sector_min(msg, 90)
+        right = self.sector_min(msg, -90)
+        back = self.sector_min(msg, 180)
 
         def fmt(v):
-            if v is None:
-                return "无有效点"
-            return f"{v:.3f} m"
+            return "None" if v is None else f"{v:.2f} m"
 
-        print("\033c", end="")
-        print("========== YDLIDAR X2 方向检查 ==========")
-        print("")
-        print(f"前方   0°   : {fmt(front)}")
-        print(f"左方  +90°  : {fmt(left)}")
-        print(f"后方  180°  : {fmt(back)}")
-        print(f"右方  -90°  : {fmt(right)}")
-        print("")
-        print("测试方法：")
-        print("1. 把纸板/手放在雷达正前方，看“前方 0°”是否明显变小")
-        print("2. 放在左边，看“左方 +90°”是否明显变小")
-        print("3. 放在右边，看“右方 -90°”是否明显变小")
-        print("4. 如果对应正确，雷达方向就是正确的")
-        print("")
-        print("按 Ctrl+C 退出")
+        self.get_logger().info(
+            f"FRONT(+X): {fmt(front)} | "
+            f"LEFT(+Y): {fmt(left)} | "
+            f"RIGHT(-Y): {fmt(right)} | "
+            f"BACK(-X): {fmt(back)}"
+        )
 
 
 def main():
     rclpy.init()
     node = LidarDirectionChecker()
-
-    try:
-        rclpy.spin(node)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        node.destroy_node()
-        if rclpy.ok():
-            rclpy.shutdown()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
 
 
 if __name__ == '__main__':
