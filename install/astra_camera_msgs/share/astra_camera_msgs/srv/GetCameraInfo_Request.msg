@@ -1,1 +1,0 @@
-/home/sunrise/digua_ws/build/astra_camera_msgs/rosidl_cmake/srv/GetCameraInfo_Request.msg

@@ -49,3 +49,16 @@ qtcreator-*
 
 # Catkin custom files
 CATKIN_IGNORE
+
+# Colcon build artifacts
+install/
+log/
+build/
+
+# Maps and sensor data
+*.gv
+*.pdf
+
+# Python cache
+__pycache__/
+*.pyc

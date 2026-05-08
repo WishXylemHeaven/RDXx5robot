@@ -1,1 +1,0 @@
-/home/sunrise/digua_ws/src/ros2_astra_camera/astra_camera/include/astra_camera/dynamic_params.h

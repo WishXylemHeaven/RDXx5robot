@@ -1,1 +1,0 @@
-/home/sunrise/digua_ws/build/digua_bringup/ament_cmake_core/digua_bringupConfig-version.cmake

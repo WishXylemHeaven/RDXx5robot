@@ -1,1 +1,0 @@
-/home/sunrise/digua_ws/src/digua_bringup/launch/lidar_x2.launch.py

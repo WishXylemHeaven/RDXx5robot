@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>digua_mapping</name>
+  <version>0.0.1</version>
+  <description>Online mapping launch files for Digua robot using RTAB-Map with RGB-D, LiDAR and external EKF odometry.</description>
+
+  <maintainer email="3540045144@qq.com">w</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>rtabmap_launch</exec_depend>
+  <exec_depend>rtabmap_ros</exec_depend>
+  <exec_depend>rtabmap_msgs</exec_depend>
+  <exec_depend>nav2_map_server</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

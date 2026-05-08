@@ -30,7 +30,7 @@
   <!-- Sensor positions relative to base_link -->
   <xacro:property name="lidar_x" value="0.100"/>
   <xacro:property name="lidar_y" value="0.000"/>
-  <xacro:property name="lidar_z" value="0.072"/>
+  <xacro:property name="lidar_z" value="0.087"/>
 
   <xacro:property name="camera_x" value="0.170"/>
   <xacro:property name="camera_y" value="0.000"/>
