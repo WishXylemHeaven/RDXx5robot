@@ -2,7 +2,7 @@
     <arg name="approx_sync" default="true"/>
     <arg name="sync_queue_size" default="10"/>
     <arg name="topic_queue_size" default="10"/>
-    <arg name="approx_sync_max_interval" default="0.05"/>
+    <arg name="approx_sync_max_interval" default="0.03"/>
 
     <arg name="rgb_image_topic" default="/camera/color/image_raw"/>
     <arg name="depth_image_topic" default="/camera/depth/image_raw"/>
