@@ -14,4 +14,16 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}
 )
 
+install(PROGRAMS
+  scripts/go_to_pose.py
+  scripts/save_named_pose.py
+  scripts/go_to_named_pose.py
+  scripts/list_named_poses.py
+  scripts/auto_initial_pose.py
+  scripts/wait_for_tf.py
+  scripts/follow_named_route.py
+  scripts/start_nav_from_home.sh
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 ament_package()

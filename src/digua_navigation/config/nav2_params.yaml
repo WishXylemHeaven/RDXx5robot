@@ -121,16 +121,16 @@ controller_server:
     general_goal_checker:
       stateful: true
       plugin: nav2_controller::SimpleGoalChecker
-      xy_goal_tolerance: 0.18
-      yaw_goal_tolerance: 3.14
+      xy_goal_tolerance: 0.05
+      yaw_goal_tolerance: 1.57
     FollowPath:
       plugin: nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController
-      desired_linear_vel: 0.2
-      min_approach_linear_velocity: 0.05
-      approach_velocity_scaling_dist: 0.5
-      lookahead_dist: 0.35
-      min_lookahead_dist: 0.25
-      max_lookahead_dist: 0.6
+      desired_linear_vel: 0.18
+      min_approach_linear_velocity: 0.03
+      approach_velocity_scaling_dist: 0.8
+      lookahead_dist: 0.3
+      min_lookahead_dist: 0.2
+      max_lookahead_dist: 0.5
       lookahead_time: 1.5
       use_velocity_scaled_lookahead_dist: true
       use_rotate_to_heading: false
@@ -263,8 +263,8 @@ planner_server:
       angle_quantization_bins: 72
       analytic_expansion_ratio: 3.5
       analytic_expansion_max_length: 2.0
-      reverse_penalty: 2.5
-      change_penalty: 0.2
+      reverse_penalty: 6.0
+      change_penalty: 1.0
       non_straight_penalty: 1.2
       cost_penalty: 2.0
       retrospective_penalty: 0.015
@@ -330,19 +330,19 @@ velocity_smoother:
     scale_velocities: false
     feedback: OPEN_LOOP
     max_velocity:
-    - 0.2
+    - 0.18
     - 0.0
     - 0.45
     min_velocity:
-    - -0.1
+    - -0.08
     - 0.0
     - -0.45
     max_accel:
-    - 0.4
+    - 0.35
     - 0.0
     - 0.8
     max_decel:
-    - -0.4
+    - -0.35
     - 0.0
     - -0.8
     odom_topic: odom

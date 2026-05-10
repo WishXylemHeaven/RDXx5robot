@@ -1,0 +1,15 @@
+poses:
+  home:
+    frame_id: map
+    base_frame: base_footprint
+    x: 0.18732416914367764
+    y: 0.22121698241062035
+    yaw: -3.1322730290089043
+    yaw_deg: -179.46602484486868
+  test_front:
+    frame_id: map
+    base_frame: base_footprint
+    x: -0.9110322745101622
+    y: -0.689898945188969
+    yaw: -2.735662621131332
+    yaw_deg: -156.74192236252168
