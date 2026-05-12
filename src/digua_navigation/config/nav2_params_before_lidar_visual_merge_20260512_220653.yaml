@@ -163,14 +163,12 @@ local_costmap:
       height: 3
       resolution: 0.05
       plugins:
-      - obstacle_layer
       - voxel_layer
       - inflation_layer
       inflation_layer:
         plugin: nav2_costmap_2d::InflationLayer
         cost_scaling_factor: 8.0
         inflation_radius: 0.18
-        enabled: true
       voxel_layer:
         plugin: nav2_costmap_2d::VoxelLayer
         enabled: true
@@ -201,20 +199,6 @@ local_costmap:
       always_send_full_costmap: true
       footprint: '[[0.32, 0.10], [0.32, -0.10], [-0.04, -0.10], [-0.04, 0.10]]'
       footprint_padding: 0.005
-      obstacle_layer:
-        plugin: nav2_costmap_2d::ObstacleLayer
-        enabled: true
-        observation_sources: scan
-        scan:
-          topic: /scan
-          data_type: LaserScan
-          marking: true
-          clearing: true
-          obstacle_min_range: 0.05
-          obstacle_max_range: 3.0
-          raytrace_min_range: 0.05
-          raytrace_max_range: 3.5
-          max_obstacle_height: 2.0
 global_costmap:
   global_costmap:
     ros__parameters:

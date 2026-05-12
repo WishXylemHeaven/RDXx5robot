@@ -14,6 +14,7 @@
 #include "magic_enum/magic_enum.hpp"
 
 #include <sensor_msgs/distortion_models.hpp>
+#include <cmath>
 
 namespace astra_camera {
 
@@ -93,11 +94,12 @@ sensor_msgs::msg::CameraInfo getDefaultCameraInfo(int width, int height, double 
 }
 
 bool isValidCameraParams(const OBCameraParams& params) {
-  if (std::isnan(params.l_intr_p[0]) || std::isnan(params.l_intr_p[1]) ||
-      std::isnan(params.l_intr_p[2]) || std::isnan(params.l_intr_p[3])) {
-    return false;
-  }
-  return true;
+  return std::isfinite(static_cast<double>(params.l_intr_p[0])) &&
+         std::isfinite(static_cast<double>(params.l_intr_p[1])) &&
+         std::isfinite(static_cast<double>(params.l_intr_p[2])) &&
+         std::isfinite(static_cast<double>(params.l_intr_p[3])) &&
+         static_cast<double>(params.l_intr_p[0]) > 0.0 &&
+         static_cast<double>(params.l_intr_p[1]) > 0.0;
 }
 
 std::vector<std::string> split(const std::string& str, char delim) {

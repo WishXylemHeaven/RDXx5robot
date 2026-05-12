@@ -16,6 +16,7 @@
 
 #include "astra_camera/utils.h"
 #include "astra_camera/ob_camera_node.h"
+#include <cmath>
 
 namespace astra_camera {
 
@@ -113,6 +114,18 @@ sensor_msgs::msg::CameraInfo OBCameraNode::OBCameraParamsToCameraInfo(
   camera_info.p[7] = 0.0;
   camera_info.p[10] = 1.0;
   camera_info.p[11] = 0.0;
+  if ((!std::isfinite(camera_info.k[0]) || !std::isfinite(camera_info.k[4])) &&
+      std::isfinite(camera_info.p[0]) && std::isfinite(camera_info.p[2]) &&
+      std::isfinite(camera_info.p[5]) && std::isfinite(camera_info.p[6]) &&
+      camera_info.p[0] > 0.0 && camera_info.p[5] > 0.0) {
+    camera_info.k.fill(0.0);
+    camera_info.k[0] = camera_info.p[0];
+    camera_info.k[2] = camera_info.p[2];
+    camera_info.k[4] = camera_info.p[5];
+    camera_info.k[5] = camera_info.p[6];
+    camera_info.k[8] = 1.0;
+  }
+
   return camera_info;
 }
 
@@ -210,7 +223,7 @@ CameraInfo OBCameraNode::getDepthCameraInfo() {
   double scaling = (double)width / 640;
   auto camera_info = getIRCameraInfo(width, height, f);
   auto camera_params = getCameraParams();
-  if (!isValidCameraParams(camera_params)) {
+  if (isValidCameraParams(camera_params)) {
     if (depth_registration_ || enable_colored_point_cloud_) {
       camera_info.k[0] = camera_params.r_intr_p[0];
       camera_info.k[2] = camera_params.r_intr_p[2];
@@ -227,8 +240,8 @@ CameraInfo OBCameraNode::getDepthCameraInfo() {
   }
   camera_info.k[2] -= depth_ir_x_offset_ * scaling;
   camera_info.k[5] -= depth_ir_y_offset_ * scaling;
-  camera_info.k[2] -= depth_ir_x_offset_ * scaling;
-  camera_info.k[6] -= depth_ir_y_offset_ * scaling;
+  camera_info.p[2] = camera_info.k[2];
+  camera_info.p[6] = camera_info.k[5];
 
   // TODO: Could put this in projector frame so as to encode the baseline in P[3]
   return camera_info;

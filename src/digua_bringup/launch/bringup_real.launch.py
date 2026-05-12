@@ -132,7 +132,7 @@ def generate_launch_description():
 
         DeclareLaunchArgument(
             'astra_enable_point_cloud',
-            default_value='false',
+            default_value='true',
             description='Enable Astra point cloud. Keep false for normal bringup.'
         ),
 
