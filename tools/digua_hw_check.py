@@ -120,6 +120,21 @@ CHECK_PHASES = [
         ],
     },
     {
+        "name": "Depth point cloud",
+        "duration": 3.0,
+        "topics": [
+            {
+                "name": "depth point cloud",
+                "topic": "/camera/depth/points",
+                "type": "sensor_msgs/msg/PointCloud2",
+                "min_hz": 5.0,
+                "required": True,
+                "validator": "pointcloud",
+                "max_samples": 4,
+            },
+        ],
+    },
+    {
         "name": "CameraInfo",
         "duration": 2.0,
         "topics": [
@@ -269,7 +284,7 @@ class TopicCheck:
 # ============================================================
 
 def validate_msg_basic(c: TopicCheck, msg) -> Tuple[bool, str]:
-    if c.validator_name in ["scan", "imu", "odom", "image", "depth_image", "camera_info"]:
+    if c.validator_name in ["scan", "imu", "odom", "image", "depth_image", "camera_info", "pointcloud"]:
         frame_id = get_header_frame_id(msg)
         if frame_id == "":
             return False, "header.frame_id is empty"
@@ -415,6 +430,176 @@ def validate_rgbd_msg(msg) -> Tuple[bool, str]:
     return True, f"rgb={rgb.width}x{rgb.height}, depth={depth.width}x{depth.height}"
 
 
+
+def pointcloud_xyz_field_info(msg):
+    fields = {f.name: f for f in msg.fields}
+
+    for name in ["x", "y", "z"]:
+        if name not in fields:
+            return None, f"PointCloud2 missing field: {name}"
+
+    xyz = []
+    for name in ["x", "y", "z"]:
+        f = fields[name]
+
+        # sensor_msgs/PointField:
+        # FLOAT32 = 7, FLOAT64 = 8
+        if f.datatype not in [7, 8]:
+            return None, f"PointCloud2 field {name} is not FLOAT32/FLOAT64, datatype={f.datatype}"
+
+        xyz.append((f.offset, f.datatype))
+
+    return xyz, "ok"
+
+
+def read_pc_float(data, offset, datatype, is_bigendian):
+    # datatype: FLOAT32=7, FLOAT64=8
+    endian = ">" if is_bigendian else "<"
+
+    if datatype == 7:
+        if offset + 4 > len(data):
+            return None
+        return struct.unpack_from(endian + "f", data, offset)[0]
+
+    if datatype == 8:
+        if offset + 8 > len(data):
+            return None
+        return struct.unpack_from(endian + "d", data, offset)[0]
+
+    return None
+
+
+def pointcloud_valid_stats(msg):
+    total_points = int(msg.width) * int(msg.height)
+
+    if total_points <= 0:
+        return 0, 0, None, None, 0.0, "PointCloud2 has zero points"
+
+    if msg.point_step <= 0:
+        return 0, 0, None, None, 0.0, "PointCloud2 point_step invalid"
+
+    if msg.row_step <= 0:
+        return 0, 0, None, None, 0.0, "PointCloud2 row_step invalid"
+
+    data = bytes(msg.data)
+    if len(data) == 0:
+        return 0, 0, None, None, 0.0, "PointCloud2 data is empty"
+
+    xyz_info, info = pointcloud_xyz_field_info(msg)
+    if xyz_info is None:
+        return 0, 0, None, None, 0.0, info
+
+    sample_count = min(30000, total_points)
+    step = max(1, total_points // sample_count)
+
+    checked = 0
+    valid = 0
+    min_range = None
+    max_range = None
+
+    is_bigendian = bool(msg.is_bigendian)
+
+    for idx in range(0, total_points, step):
+        row = idx // msg.width
+        col = idx % msg.width
+        base = int(row) * int(msg.row_step) + int(col) * int(msg.point_step)
+
+        values = []
+        ok = True
+
+        for field_offset, datatype in xyz_info:
+            v = read_pc_float(data, base + int(field_offset), int(datatype), is_bigendian)
+            if v is None or not math.isfinite(float(v)):
+                ok = False
+                break
+            values.append(float(v))
+
+        checked += 1
+
+        if not ok:
+            continue
+
+        x, y, z = values
+
+        # 对相机 optical frame 点云来说，z 通常是前方深度。
+        # 这里不强制 frame 名，只判断三维距离和 z 合理，避免误判。
+        distance = math.sqrt(x * x + y * y + z * z)
+
+        if 0.05 < distance < 10.0 and z > 0.02:
+            valid += 1
+            min_range = distance if min_range is None else min(min_range, distance)
+            max_range = distance if max_range is None else max(max_range, distance)
+
+    ratio = valid / max(1, checked)
+    return checked, valid, min_range, max_range, ratio, "ok"
+
+
+def validate_pointcloud_msg(msg) -> Tuple[bool, str]:
+    if msg.width <= 0 or msg.height <= 0:
+        return False, f"invalid PointCloud2 size: {msg.width}x{msg.height}"
+
+    if msg.point_step <= 0 or msg.row_step <= 0:
+        return False, f"invalid PointCloud2 step: point_step={msg.point_step}, row_step={msg.row_step}"
+
+    if len(msg.data) == 0:
+        return False, "PointCloud2 data is empty"
+
+    xyz_info, info = pointcloud_xyz_field_info(msg)
+    if xyz_info is None:
+        return False, info
+
+    field_names = [f.name for f in msg.fields]
+    return True, f"{msg.width}x{msg.height}, point_step={msg.point_step}, fields={field_names}"
+
+
+def final_check_pointcloud(c: TopicCheck) -> Tuple[str, str]:
+    if not c.samples:
+        return "FAIL", "no pointcloud samples"
+
+    ratios = []
+    min_values = []
+    max_values = []
+    last_error = ""
+
+    for msg in c.samples:
+        checked, valid, min_r, max_r, ratio, info = pointcloud_valid_stats(msg)
+
+        if info != "ok":
+            last_error = info
+            continue
+
+        ratios.append(ratio)
+
+        if min_r is not None:
+            min_values.append(min_r)
+
+        if max_r is not None:
+            max_values.append(max_r)
+
+    msg = c.samples[-1]
+
+    if not ratios:
+        return "FAIL", last_error or "no valid pointcloud stats"
+
+    avg_ratio = sum(ratios) / len(ratios)
+
+    if avg_ratio < 0.01:
+        return "FAIL", f"too few valid 3D points, avg_valid_ratio={avg_ratio:.3f}, frame_id={get_header_frame_id(msg)}"
+
+    if not min_values or not max_values:
+        return "FAIL", f"no valid 3D point range, frame_id={get_header_frame_id(msg)}"
+
+    field_names = [f.name for f in msg.fields]
+
+    return "PASS", (
+        f"{msg.width}x{msg.height}, "
+        f"avg_valid_ratio={avg_ratio:.3f}, "
+        f"range={min(min_values):.2f}-{max(max_values):.2f}m, "
+        f"frame_id={get_header_frame_id(msg)}, "
+        f"fields={field_names}"
+    )
+
+
 MESSAGE_VALIDATORS = {
     "scan": validate_scan_msg,
     "imu": validate_imu_msg,
@@ -423,6 +608,7 @@ MESSAGE_VALIDATORS = {
     "depth_image": validate_depth_image_msg,
     "camera_info": validate_camera_info_msg,
     "rgbd": validate_rgbd_msg,
+    "pointcloud": validate_pointcloud_msg,
 }
 
 
@@ -690,6 +876,7 @@ FINAL_VALIDATORS = {
     "depth_image": final_check_depth_image,
     "camera_info": final_check_camera_info,
     "rgbd": final_check_rgbd,
+    "pointcloud": final_check_pointcloud,
 }
 
 
