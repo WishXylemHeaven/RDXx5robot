@@ -15,6 +15,7 @@ install(DIRECTORY
 )
 
 install(PROGRAMS
+  scripts/pointcloud2_restamp.py
   scripts/go_to_pose.py
   scripts/save_named_pose.py
   scripts/go_to_named_pose.py

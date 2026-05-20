@@ -1,0 +1,38 @@
+collision_monitor:
+  ros__parameters:
+    use_sim_time: false
+
+    base_frame_id: "base_footprint"
+    odom_frame_id: "odom"
+
+    cmd_vel_in_topic: "cmd_vel_smoothed"
+    cmd_vel_out_topic: "cmd_vel"
+    state_topic: "collision_monitor_state"
+
+    transform_tolerance: 1.0
+    source_timeout: 3.0
+    stop_pub_timeout: 3.0
+    base_shift_correction: true
+
+    # 只保留一个正常视觉硬停区
+    # x/y 是 base_footprint 坐标系下的距离，不是相机坐标系
+    polygons: ["VisualStop"]
+
+    VisualStop:
+      type: "polygon"
+      points: [0.80, 0.20, 0.80, -0.20, 0.30, -0.20, 0.30, 0.20]
+      action_type: "stop"
+      max_points: 80
+      visualize: true
+      polygon_pub_topic: "visual_stop_polygon"
+      enabled: true
+
+    observation_sources: ["pointcloud"]
+
+    pointcloud:
+      type: "pointcloud"
+      topic: "/camera/depth/points_now"
+      source_timeout: 3.0
+      min_height: 0.12
+      max_height: 0.45
+      enabled: true
