@@ -21,6 +21,28 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='digua_navigation',
+            executable='low_obstacle_cloud_filter.py',
+            name='low_obstacle_cloud_filter',
+            output='screen',
+            parameters=[{
+                'input_topic': '/camera/depth/points_now',
+                'output_topic': '/camera/low_obstacle_points',
+                'target_frame': 'base_footprint',
+                'stamp_delay': 1.05,
+                'x_min': 0.30,
+                'x_max': 1.05,
+                'y_abs': 0.30,
+                'z_min': 0.15,
+                'z_max': 0.45,
+                'sample_stride': 64,
+                'max_publish_points': 2000,
+                'min_obstacle_points': 120,
+            }],
+        ),
+
+
+        Node(
+            package='digua_navigation',
             executable='pointcloud2_restamp.py',
             name='camera_points_restamp',
             output='screen',

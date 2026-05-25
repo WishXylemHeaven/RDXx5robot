@@ -15,6 +15,7 @@ install(DIRECTORY
 )
 
 install(PROGRAMS
+  scripts/low_obstacle_cloud_filter.py
   scripts/pointcloud2_restamp.py
   scripts/go_to_pose.py
   scripts/save_named_pose.py
