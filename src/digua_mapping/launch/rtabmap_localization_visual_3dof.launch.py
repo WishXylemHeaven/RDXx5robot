@@ -26,7 +26,6 @@ def get_default_database_path():
 
     fallback = rtabmap_dir / "digua_online_20260511_222109.db"
 
-    # 1. 优先读取 current_map_name.txt
     try:
         if name_file.exists():
             map_name = name_file.read_text(encoding="utf-8").strip()
@@ -38,20 +37,19 @@ def get_default_database_path():
                     db_path = rtabmap_dir / f"{map_name}.db"
 
                 if db_path.exists():
-                    print(f"[rtabmap_localization] current_map_name = {map_name}")
-                    print(f"[rtabmap_localization] use database_path = {db_path}")
+                    print(f"[rtabmap_localization_visual_3dof] current_map_name = {map_name}")
+                    print(f"[rtabmap_localization_visual_3dof] use database_path = {db_path}")
                     return str(db_path)
 
-                print(f"[rtabmap_localization] WARNING: current map db does not exist: {db_path}")
+                print(f"[rtabmap_localization_visual_3dof] WARNING: current map db does not exist: {db_path}")
             else:
-                print(f"[rtabmap_localization] WARNING: {name_file} is empty")
+                print(f"[rtabmap_localization_visual_3dof] WARNING: {name_file} is empty")
         else:
-            print(f"[rtabmap_localization] WARNING: {name_file} does not exist")
+            print(f"[rtabmap_localization_visual_3dof] WARNING: {name_file} does not exist")
 
     except Exception as e:
-        print(f"[rtabmap_localization] WARNING: failed to read {name_file}: {e}")
+        print(f"[rtabmap_localization_visual_3dof] WARNING: failed to read {name_file}: {e}")
 
-    # 2. 兜底：自动找最新的 .db
     try:
         db_files = sorted(
             rtabmap_dir.glob("*.db"),
@@ -61,16 +59,15 @@ def get_default_database_path():
 
         if db_files:
             latest_db = db_files[0]
-            print(f"[rtabmap_localization] use latest database_path = {latest_db}")
+            print(f"[rtabmap_localization_visual_3dof] use latest database_path = {latest_db}")
             return str(latest_db)
 
-        print(f"[rtabmap_localization] WARNING: no *.db found in {rtabmap_dir}")
+        print(f"[rtabmap_localization_visual_3dof] WARNING: no *.db found in {rtabmap_dir}")
 
     except Exception as e:
-        print(f"[rtabmap_localization] WARNING: failed to search latest db in {rtabmap_dir}: {e}")
+        print(f"[rtabmap_localization_visual_3dof] WARNING: failed to search latest db in {rtabmap_dir}: {e}")
 
-    # 3. 最终兜底
-    print(f"[rtabmap_localization] WARNING: use fallback database_path = {fallback}")
+    print(f"[rtabmap_localization_visual_3dof] WARNING: use fallback database_path = {fallback}")
     return str(fallback)
 
 
@@ -88,15 +85,13 @@ def generate_launch_description():
         "rtabmap.launch.py"
     ])
 
-    # RTAB-Map localization mode 参数：
-    # 1. localization=true：加载已有 db 定位，不重新建图
-    # 2. Mem/IncrementalMemory=false：定位模式
-    # 3. Mem/InitWMWithAllNodes=true：启动时加载已有地图节点用于匹配
-    # 4. RGBD/LocalizationSmoothing=true：定位平滑
-    # 5. RGBD/MaxOdomCacheSize=0：关闭 odom cache，避免异常 odom 协方差干扰验证
-    # 6. Vis/MinInliers=25：提高视觉匹配质量门槛
-    # 7. RGBD/OptimizeMaxError=3：保留默认闭环错误保护
-    # 8. Grid/Sensor=0：使用 /scan 生成/维护 2D 栅格
+    # Visual-only + Force3DoF 稳定版：
+    # Reg/Strategy=0：只使用视觉配准，不使用 ICP/scan 几何配准来修正位姿
+    # Reg/Force3DoF=true：限制为平面机器人 x、y、yaw
+    # RGBD/ProximityPathMaxNeighbors=0：关闭基于 scan proximity 的近邻闭环，减少相似场景拉扯
+    #
+    # 注意：仍然 subscribe_scan=true。
+    # /scan 仍可用于 RTAB-Map 输出 2D 栅格地图，但不通过 ICP 直接拉动定位。
     rtabmap_args = (
         "--Mem/IncrementalMemory false "
         "--Mem/InitWMWithAllNodes true "
@@ -104,7 +99,10 @@ def generate_launch_description():
         "--RGBD/MaxOdomCacheSize 0 "
         "--RGBD/OptimizeMaxError 3 "
         "--Vis/MinInliers 25 "
-        "--Grid/Sensor 0"
+        "--Grid/Sensor 0 "
+        "--Reg/Strategy 0 "
+        "--Reg/Force3DoF true "
+        "--RGBD/ProximityPathMaxNeighbors 0"
     )
 
     return LaunchDescription([
