@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>digua_bpu_yolo</name>
+  <version>0.0.1</version>
+  <description>BPU YOLO wrapper package for Digua robot semantic mapping</description>
+  <maintainer email="wishxylemheaven@users.noreply.github.com">sunrise</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>cv_bridge</depend>
+
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>dnn_node_example</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

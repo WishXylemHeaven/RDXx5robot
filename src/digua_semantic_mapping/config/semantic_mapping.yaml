@@ -1,0 +1,55 @@
+semantic_observer_node:
+  ros__parameters:
+    map_frame: "map"
+    camera_frame: "camera_color_optical_frame"
+
+    detections_topic: "/semantic/detections_json"
+    depth_topic: "/camera/depth/image_raw"
+    camera_info_topic: "/camera/color/camera_info"
+    observations_topic: "/semantic/observations_json"
+
+    depth_min: 0.45
+    depth_max: 3.5
+    roi_scale: 0.4
+
+    class_whitelist:
+      - chair
+      - table
+      - desk
+      - couch
+      - bottle
+      - cup
+      - refrigerator
+      - microwave
+      - sink
+      - toilet
+      - tv
+      - laptop
+      - person
+      - footwear
+
+    dynamic_classes:
+      - person
+      - dog
+      - cat
+
+semantic_fusion_node:
+  ros__parameters:
+    observations_topic: "/semantic/observations_json"
+    semantic_map_topic: "/semantic/map_json"
+    semantic_map_path: "/home/sunrise/digua_ws/digua_maps/semantic/semantic_map.json"
+
+    merge_distance_default: 0.5
+    min_observations_confirmed: 3
+
+    dynamic_classes:
+      - person
+      - dog
+      - cat
+
+semantic_marker_node:
+  ros__parameters:
+    semantic_map_path: "/home/sunrise/digua_ws/digua_maps/semantic/semantic_map.json"
+    marker_topic: "/semantic/markers"
+    map_frame: "map"
+    refresh_period: 1.0

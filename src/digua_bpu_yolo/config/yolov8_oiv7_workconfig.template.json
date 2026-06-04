@@ -1,0 +1,14 @@
+{
+  "model_file": "__MODEL_FILE__",
+  "task_num": 4,
+  "dnn_Parser": "yolov8",
+  "model_output_count": 6,
+  "reg_max": 16,
+  "class_num": 601,
+  "cls_names_list": "__CLASSES_FILE__",
+  "strides": [8, 16, 32],
+  "score_threshold": 0.25,
+  "nms_threshold": 0.7,
+  "nms_top_k": 300,
+  "output_order": [0, 1, 2, 3, 4, 5]
+}
