@@ -62,6 +62,95 @@ def load_classes(path):
     return names
 
 
+
+
+def load_aliases(path):
+    """
+    读取 OIV7 alias 文件。
+    key 是最终发布到语义地图的名字，例如 tv；
+    value 是 OIV7 类别表里的真实类别名，例如 television。
+    """
+    if not path:
+        return {}
+
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+    except Exception:
+        return {}
+
+    aliases = {}
+    for k, values in raw.items():
+        key = str(k).strip().lower()
+        if not key:
+            continue
+
+        if isinstance(values, str):
+            values = [values]
+
+        out = []
+        for v in values:
+            v = str(v).strip().lower()
+            if v:
+                out.append(v)
+
+        aliases[key] = out
+
+    return aliases
+
+
+def load_semantic_whitelist(path):
+    """
+    轻量解析 semantic_mapping.yaml 里的 semantic_observer_node.class_whitelist。
+    不依赖 PyYAML，避免额外安装包。
+    """
+    labels = []
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+    except Exception:
+        return labels
+
+    in_observer = False
+    in_whitelist = False
+
+    for raw in lines:
+        line = raw.rstrip("\n")
+        stripped = line.strip()
+
+        if not stripped or stripped.startswith("#"):
+            continue
+
+        if stripped.startswith("semantic_observer_node:"):
+            in_observer = True
+            in_whitelist = False
+            continue
+
+        # 遇到下一个顶层节点，退出 observer 区域
+        if in_observer and not line.startswith(" ") and stripped.endswith(":"):
+            if not stripped.startswith("semantic_observer_node:"):
+                in_observer = False
+                in_whitelist = False
+            continue
+
+        if not in_observer:
+            continue
+
+        if stripped.startswith("class_whitelist:"):
+            in_whitelist = True
+            continue
+
+        if in_whitelist:
+            if stripped.startswith("- "):
+                label = stripped[2:].strip().strip('"').strip("'").lower()
+                if label:
+                    labels.append(label)
+            elif stripped.endswith(":"):
+                break
+
+    return labels
+
+
 def normalize_cls_scores(cls, mode):
     if mode == "sigmoid":
         return sigmoid(cls)
@@ -75,12 +164,29 @@ def normalize_cls_scores(cls, mode):
     return cls
 
 
-def decode_one_level(cls, reg, stride, score_threshold, cls_mode):
+def decode_one_level(cls, reg, stride, score_threshold, cls_mode, target_class_ids=None):
+    """
+    cls: H,W,601
+    reg: H,W,64
+
+    优化点：
+    - target_class_ids 为空：仍然处理全部 601 类
+    - target_class_ids 非空：只取白名单类别对应的通道做 sigmoid/argmax
+    """
     h, w, c = cls.shape
 
-    cls_scores = normalize_cls_scores(cls, cls_mode)
-    class_ids = np.argmax(cls_scores, axis=-1)
-    scores = np.max(cls_scores, axis=-1)
+    if target_class_ids:
+        target_ids = np.array(target_class_ids, dtype=np.int32)
+        cls_selected = cls[:, :, target_ids]          # H,W,K
+        cls_scores = normalize_cls_scores(cls_selected, cls_mode)
+
+        local_ids = np.argmax(cls_scores, axis=-1)    # H,W
+        scores = np.max(cls_scores, axis=-1)          # H,W
+        class_ids = target_ids[local_ids]             # H,W，映射回 601 类原始 class_id
+    else:
+        cls_scores = normalize_cls_scores(cls, cls_mode)
+        class_ids = np.argmax(cls_scores, axis=-1)
+        scores = np.max(cls_scores, axis=-1)
 
     mask = scores >= score_threshold
     if not np.any(mask):
@@ -117,7 +223,6 @@ def decode_one_level(cls, reg, stride, score_threshold, cls_mode):
     boxes[:, 1::2] = np.clip(boxes[:, 1::2], 0, 640)
 
     return boxes, scores_keep, class_keep
-
 
 def iou_one_to_many(box, boxes):
     x1 = np.maximum(box[0], boxes[:, 0])
@@ -195,6 +300,15 @@ class RealtimeBpuYoloNode(Node):
 
         # 逗号分隔，例如 "bottle,chair,cup,footwear"；空字符串表示不过滤
         self.declare_parameter("publish_labels", "")
+        self.declare_parameter("use_semantic_whitelist", True)
+        self.declare_parameter(
+            "semantic_whitelist_yaml",
+            "/home/sunrise/digua_ws/src/digua_semantic_mapping/config/semantic_mapping.yaml",
+        )
+        self.declare_parameter(
+            "aliases_file",
+            "/home/sunrise/digua_ws/src/digua_bpu_yolo/config/oiv7_aliases.json",
+        )
 
         self.model_file = self.get_parameter("model_file").value
         self.classes_file = self.get_parameter("classes_file").value
@@ -214,10 +328,24 @@ class RealtimeBpuYoloNode(Node):
         self.publish_empty = bool(self.get_parameter("publish_empty").value)
 
         publish_labels_str = str(self.get_parameter("publish_labels").value).strip()
+        self.use_semantic_whitelist = bool(self.get_parameter("use_semantic_whitelist").value)
+        self.semantic_whitelist_yaml = str(self.get_parameter("semantic_whitelist_yaml").value)
+        self.aliases_file = str(self.get_parameter("aliases_file").value)
+        self.aliases = load_aliases(self.aliases_file)
+
         if publish_labels_str:
+            # launch 里显式传 publish_labels 时，优先用这个
             self.publish_labels = set([x.strip().lower() for x in publish_labels_str.split(",") if x.strip()])
+            self.publish_labels_source = "launch publish_labels"
         else:
             self.publish_labels = set()
+            self.publish_labels_source = "none"
+
+            # 没显式传 publish_labels 时，自动读取语义地图白名单
+            if self.use_semantic_whitelist:
+                labels = load_semantic_whitelist(self.semantic_whitelist_yaml)
+                self.publish_labels = set(labels)
+                self.publish_labels_source = f"semantic whitelist: {self.semantic_whitelist_yaml}"
 
         self.bridge = CvBridge()
         self.latest_image_msg = None
@@ -225,6 +353,40 @@ class RealtimeBpuYoloNode(Node):
         self.is_busy = False
 
         self.classes = load_classes(self.classes_file)
+
+        # 把白名单类别名转换成 OIV7 class_id，用于前置过滤。
+        # 同时保存 class_id -> 发布名。
+        # 例如白名单 tv -> alias television -> OIV7 class_id -> 最终发布 label=tv。
+        self.target_class_ids = []
+        self.class_id_to_publish_label = {}
+
+        class_name_to_ids = {}
+        for idx, name in enumerate(self.classes):
+            key = name.strip().lower()
+            class_name_to_ids.setdefault(key, []).append(idx)
+
+        unmatched_labels = []
+        for publish_label in sorted(self.publish_labels):
+            candidates = [publish_label]
+            candidates.extend(self.aliases.get(publish_label, []))
+
+            matched = False
+            for cand in candidates:
+                cand = cand.strip().lower()
+                ids = class_name_to_ids.get(cand)
+                if not ids:
+                    continue
+
+                matched = True
+                for cid in ids:
+                    self.target_class_ids.append(cid)
+                    self.class_id_to_publish_label[cid] = publish_label
+
+            if not matched:
+                unmatched_labels.append(publish_label)
+
+        self.target_class_ids = sorted(set(self.target_class_ids))
+        self.unmatched_labels = unmatched_labels
 
         self.get_logger().info("loading BPU model...")
         self.models = dnn.load(self.model_file)
@@ -237,7 +399,21 @@ class RealtimeBpuYoloNode(Node):
         self.get_logger().info(f"nms_threshold: {self.nms_threshold}")
         self.get_logger().info(f"top_k: {self.top_k}")
         self.get_logger().info(f"infer_fps: {self.infer_fps}")
+        self.get_logger().info(f"publish_labels source: {self.publish_labels_source}")
         self.get_logger().info(f"publish_labels filter: {sorted(list(self.publish_labels))}")
+        self.get_logger().info(f"aliases_file: {self.aliases_file}")
+        self.get_logger().info(f"target_class_ids: {self.target_class_ids}")
+        self.get_logger().info(f"class_id_to_publish_label: {self.class_id_to_publish_label}")
+        if self.unmatched_labels:
+            self.get_logger().warn(
+                f"unmatched whitelist labels: {self.unmatched_labels}. "
+                "Check oiv7_aliases.json and oiv7_classes.list."
+            )
+        if self.publish_labels and not self.target_class_ids:
+            self.get_logger().warn(
+                "publish_labels is not empty, but no class id matched. "
+                "Check oiv7_classes.list, semantic_mapping.yaml and oiv7_aliases.json."
+            )
 
         self.sub = self.create_subscription(
             Image,
@@ -354,6 +530,7 @@ class RealtimeBpuYoloNode(Node):
                 stride=stride,
                 score_threshold=self.score_threshold,
                 cls_mode=self.cls_mode,
+                target_class_ids=self.target_class_ids,
             )
 
             all_boxes.append(boxes)
@@ -381,10 +558,18 @@ class RealtimeBpuYoloNode(Node):
         detections = []
         for i in keep:
             cls_id = int(class_ids[i])
-            label = self.classes[cls_id] if 0 <= cls_id < len(self.classes) else f"class_{cls_id}"
-            label_norm = label.strip().lower()
+            raw_label = self.classes[cls_id] if 0 <= cls_id < len(self.classes) else f"class_{cls_id}"
 
-            if self.publish_labels and label_norm not in self.publish_labels:
+            # 如果 class_id 是 alias 映射来的，就发布白名单里的名字；
+            # 例如 raw_label=television，最终 label_norm=tv。
+            label_norm = self.class_id_to_publish_label.get(
+                cls_id,
+                raw_label.strip().lower()
+            )
+
+            # 有 target_class_ids 时，前面已经只处理白名单类别了；
+            # 没有 target_class_ids 时，才在这里兜底过滤。
+            if self.publish_labels and not self.target_class_ids and label_norm not in self.publish_labels:
                 continue
 
             x1, y1, x2, y2 = [float(v) for v in boxes[i]]

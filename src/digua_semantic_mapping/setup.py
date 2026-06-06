@@ -22,6 +22,7 @@ setup(
     license="MIT",
     entry_points={
         "console_scripts": [
+            "semantic_goto_node = digua_semantic_mapping.semantic_goto_node:main",
             "semantic_observer_node = digua_semantic_mapping.semantic_observer_node:main",
             "semantic_fusion_node = digua_semantic_mapping.semantic_fusion_node:main",
             "semantic_marker_node = digua_semantic_mapping.semantic_marker_node:main",

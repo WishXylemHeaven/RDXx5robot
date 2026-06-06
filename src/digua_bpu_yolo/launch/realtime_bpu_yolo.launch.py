@@ -44,6 +44,9 @@ def generate_launch_description():
                 "infer_fps": LaunchConfiguration("infer_fps"),
                 "publish_empty": True,
                 "publish_labels": LaunchConfiguration("publish_labels"),
+                "use_semantic_whitelist": True,
+                "semantic_whitelist_yaml": "/home/sunrise/digua_ws/src/digua_semantic_mapping/config/semantic_mapping.yaml",
+                "aliases_file": "/home/sunrise/digua_ws/src/digua_bpu_yolo/config/oiv7_aliases.json",
             }],
         ),
     ])

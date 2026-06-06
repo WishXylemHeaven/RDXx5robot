@@ -8,9 +8,9 @@ semantic_observer_node:
     camera_info_topic: "/camera/color/camera_info"
     observations_topic: "/semantic/observations_json"
 
-    depth_min: 0.45
-    depth_max: 3.5
-    roi_scale: 0.4
+    depth_min: 0.20
+    depth_max: 4.0
+    roi_scale: 0.25
 
     class_whitelist:
       - chair
