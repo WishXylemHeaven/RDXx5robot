@@ -11,10 +11,12 @@ from rclpy.node import Node
 from rclpy.action import ActionClient
 from rclpy.duration import Duration
 from rclpy.time import Time
+from rclpy.utilities import remove_ros_args
 
 import tf2_ros
 from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
+from digua_semantic_mapping.semantic_paths import resolve_semantic_map_path
 
 
 def yaw_to_quaternion(yaw):
@@ -49,14 +51,14 @@ class SemanticGotoNode(Node):
 
         self.declare_parameter(
             "semantic_map_path",
-            "/home/sunrise/digua_ws/digua_maps/semantic/semantic_map.json"
+            "current"
         )
         self.declare_parameter("map_frame", "map")
         self.declare_parameter("base_frame", "base_footprint")
         self.declare_parameter("approach_distance", 0.7)
         self.declare_parameter("allow_candidate", False)
 
-        self.semantic_map_path = self.get_parameter("semantic_map_path").value
+        self.semantic_map_path = str(resolve_semantic_map_path(self.get_parameter("semantic_map_path").value))
         self.map_frame = self.get_parameter("map_frame").value
         self.base_frame = self.get_parameter("base_frame").value
         self.approach_distance = float(self.get_parameter("approach_distance").value)
@@ -412,9 +414,12 @@ def main():
         help="only print selected object and goal, do not send Nav2 goal"
     )
 
-    args, _ = parser.parse_known_args(sys.argv[1:])
+    # Remove ROS-specific args before argparse, otherwise "-p xxx:=yyy" may be
+    # accidentally parsed as the positional semantic label.
+    cli_args = remove_ros_args(args=sys.argv)[1:]
+    args, _ = parser.parse_known_args(cli_args)
 
-    rclpy.init()
+    rclpy.init(args=sys.argv)
     node = SemanticGotoNode(
         target_label=args.label,
         dry_run=args.dry_run,

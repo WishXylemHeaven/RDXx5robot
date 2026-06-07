@@ -1,0 +1,31 @@
+{
+    "exported_at": 1780729190.791417,
+    "exported_at_text": "20260606_145950",
+    "export_name": "patrol_semantic_success_002",
+    "export_dir": "/home/sunrise/digua_ws/digua_maps/map_sets/patrol_semantic_success_002",
+    "source_files": {
+        "semantic_map": "/home/sunrise/digua_ws/digua_maps/semantic/semantic_map.json",
+        "named_poses": "/home/sunrise/digua_ws/digua_navigation_data/named_poses.yaml",
+        "map_yaml": "/home/sunrise/digua_ws/digua_maps/nav2/digua_online_20260511_222109_map.yaml",
+        "map_image": "/home/sunrise/digua_ws/digua_maps/nav2/digua_online_20260511_222109_map.pgm",
+        "rtabmap_db": "/home/sunrise/digua_ws/digua_maps/rtabmap/digua_online_20260511_222109.db",
+        "extra_paths": []
+    },
+    "copied_files": {
+        "semantic_map": "/home/sunrise/digua_ws/digua_maps/map_sets/patrol_semantic_success_002/semantic_map.json",
+        "named_poses": "/home/sunrise/digua_ws/digua_maps/map_sets/patrol_semantic_success_002/named_poses.yaml",
+        "map_yaml": "/home/sunrise/digua_ws/digua_maps/map_sets/patrol_semantic_success_002/map.yaml",
+        "map_image": "/home/sunrise/digua_ws/digua_maps/map_sets/patrol_semantic_success_002/digua_online_20260511_222109_map.pgm",
+        "rtabmap_db": "/home/sunrise/digua_ws/digua_maps/map_sets/patrol_semantic_success_002/rtabmap.db",
+        "extra": [],
+        "all": [
+            "/home/sunrise/digua_ws/digua_maps/map_sets/patrol_semantic_success_002/semantic_map.json",
+            "/home/sunrise/digua_ws/digua_maps/map_sets/patrol_semantic_success_002/named_poses.yaml",
+            "/home/sunrise/digua_ws/digua_maps/map_sets/patrol_semantic_success_002/map.yaml",
+            "/home/sunrise/digua_ws/digua_maps/map_sets/patrol_semantic_success_002/digua_online_20260511_222109_map.pgm",
+            "/home/sunrise/digua_ws/digua_maps/map_sets/patrol_semantic_success_002/rtabmap.db"
+        ]
+    },
+    "missing_files": [],
+    "note": "This folder is a map set. semantic_map.json coordinates are meaningful only when used with the matching geometry map / RTAB-Map database."
+}

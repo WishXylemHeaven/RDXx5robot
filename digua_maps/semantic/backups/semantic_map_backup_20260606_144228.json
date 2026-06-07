@@ -1,7 +1,7 @@
 {
   "map_frame": "map",
   "version": "0.1",
-  "updated_at": 1780734554.4644265,
+  "updated_at": 1780726375.3384082,
   "next_id": 8,
   "objects": [
     {
@@ -31,6 +31,19 @@
       "merge_distance": 0.5
     },
     {
+      "id": 3,
+      "label": "bottle",
+      "x": -1.547465037384264,
+      "y": -0.7034838722237433,
+      "z": 0.3280979060664891,
+      "confidence": 0.3851177990436554,
+      "observations": 1,
+      "status": "candidate",
+      "first_seen": 1780722860.1609175,
+      "last_seen": 1780722860.1609175,
+      "merge_distance": 0.5
+    },
+    {
       "id": 4,
       "label": "bottle",
       "x": -0.32805203911133834,
@@ -54,6 +67,19 @@
       "status": "confirmed",
       "first_seen": 1780726184.4933894,
       "last_seen": 1780726209.4816487,
+      "merge_distance": 0.5
+    },
+    {
+      "id": 6,
+      "label": "footwear",
+      "x": -1.5731729493185989,
+      "y": -0.6265147147618975,
+      "z": 0.06732886773388548,
+      "confidence": 0.7680243849754333,
+      "observations": 1,
+      "status": "candidate",
+      "first_seen": 1780726253.9959145,
+      "last_seen": 1780726253.9959145,
       "merge_distance": 0.5
     },
     {
