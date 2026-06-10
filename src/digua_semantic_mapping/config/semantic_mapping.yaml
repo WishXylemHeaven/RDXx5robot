@@ -12,26 +12,112 @@ semantic_observer_node:
     depth_max: 4.0
     roi_scale: 0.25
 
+    # 允许进入语义观测层的类别。
+    # 注意：这里必须使用模型类别表里的英文名小写形式。
     class_whitelist:
+      # 原有基础类别
       - chair
       - table
       - desk
       - couch
       - bottle
-      - cup
       - refrigerator
-      - microwave
       - sink
       - toilet
-      - tv
       - laptop
       - person
       - footwear
 
+      # 本次新增：优先有用的室内语义目标
+      - bed
+      - bookcase
+      - shelf
+      - wardrobe
+      - nightstand
+      - coffee table
+      - door
+      - window
+      - mirror
+      - wall clock
+      - whiteboard
+      - light switch
+      - power plugs and sockets
+      - waste container
+      - washing machine
+      - dishwasher
+      - oven
+      - gas stove
+      - coffeemaker
+      - kettle
+      - television
+      - microwave oven
+      - coffee cup
+      - mug
+
+    # 动态类 / 不适合长期建图的类别。
+    # observer 这里保留一份，主要为了配置统一；真正跳过入图看 fusion 里的 dynamic_classes。
     dynamic_classes:
+      # 人和人体相关
       - person
+      - man
+      - woman
+      - boy
+      - girl
+      - human arm
+      - human body
+      - human ear
+      - human eye
+      - human face
+      - human foot
+      - human hair
+      - human hand
+      - human head
+      - human leg
+      - human mouth
+      - human nose
+      - human beard
+
+      # 动物
       - dog
       - cat
+      - bird
+      - animal
+      - mammal
+      - insect
+      - reptile
+      - fish
+      - rabbit
+      - hamster
+      - mouse
+
+      # 容易移动的小物品
+      - bottle
+      - drink
+      - mobile phone
+      - tablet computer
+      - remote control
+      - backpack
+      - handbag
+      - suitcase
+      - luggage and bags
+      - book
+      - plate
+      - bowl
+      - spoon
+      - fork
+      - knife
+      - scissors
+      - toothbrush
+      - towel
+      - clothing
+      - footwear
+      - hat
+      - sunglasses
+      - laptop
+      - toy
+      - ball
+      - umbrella
+
 
 semantic_fusion_node:
   ros__parameters:
@@ -42,10 +128,69 @@ semantic_fusion_node:
     merge_distance_default: 0.5
     min_observations_confirmed: 3
 
+    # 这里的类别不会写入 semantic_map.json
     dynamic_classes:
+      # 人和人体相关
       - person
+      - man
+      - woman
+      - boy
+      - girl
+      - human arm
+      - human body
+      - human ear
+      - human eye
+      - human face
+      - human foot
+      - human hair
+      - human hand
+      - human head
+      - human leg
+      - human mouth
+      - human nose
+      - human beard
+
+      # 动物
       - dog
       - cat
+      - bird
+      - animal
+      - mammal
+      - insect
+      - reptile
+      - fish
+      - rabbit
+      - hamster
+      - mouse
+
+      # 容易移动的小物品
+      - bottle
+      - drink
+      - mobile phone
+      - tablet computer
+      - remote control
+      - backpack
+      - handbag
+      - suitcase
+      - luggage and bags
+      - book
+      - plate
+      - bowl
+      - spoon
+      - fork
+      - knife
+      - scissors
+      - toothbrush
+      - towel
+      - clothing
+      - footwear
+      - hat
+      - sunglasses
+      - laptop
+      - toy
+      - ball
+      - umbrella
+
 
 semantic_marker_node:
   ros__parameters:
