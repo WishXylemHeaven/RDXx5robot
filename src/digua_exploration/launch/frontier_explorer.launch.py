@@ -21,6 +21,27 @@ def generate_launch_description():
         DeclareLaunchArgument('goal_clearance_radius', default_value='0.25'),
         DeclareLaunchArgument('max_heading_error_deg', default_value='70.0'),
 
+        DeclareLaunchArgument('enable_reverse_recovery', default_value='true'),
+        DeclareLaunchArgument('reverse_recovery_distance', default_value='0.25'),
+        DeclareLaunchArgument('max_reverse_recovery_count', default_value='1'),
+        DeclareLaunchArgument('stop_on_nav_failure', default_value='true'),
+
+        DeclareLaunchArgument('recent_goal_radius', default_value='0.35'),
+        DeclareLaunchArgument('recent_frontier_radius', default_value='0.45'),
+        DeclareLaunchArgument('recent_history_size', default_value='20'),
+        DeclareLaunchArgument('min_progress_to_reset_reverse', default_value='0.55'),
+        DeclareLaunchArgument('multiview_angle_step_deg', default_value='30.0'),
+        DeclareLaunchArgument('multiview_lateral_offset', default_value='0.20'),
+        DeclareLaunchArgument('global_fallback_enabled', default_value='true'),
+        DeclareLaunchArgument('global_fallback_max_goal_distance', default_value='4.0'),
+        DeclareLaunchArgument('global_fallback_max_heading_error_deg', default_value='85.0'),
+        DeclareLaunchArgument('cluster_recent_radius', default_value='0.55'),
+        DeclareLaunchArgument('cluster_blacklist_radius', default_value='0.75'),
+        DeclareLaunchArgument('ackermann_heading_weight', default_value='0.60'),
+        DeclareLaunchArgument('ackermann_final_yaw_weight', default_value='0.20'),
+        DeclareLaunchArgument('cluster_size_weight', default_value='0.015'),
+        DeclareLaunchArgument('global_fallback_distance_bonus', default_value='0.20'),
+
         DeclareLaunchArgument('wait_after_goal', default_value='3.0'),
         DeclareLaunchArgument('goal_timeout_sec', default_value='60.0'),
         DeclareLaunchArgument('max_goals', default_value='20'),
@@ -66,6 +87,84 @@ def generate_launch_description():
                 ),
                 'max_heading_error_deg': ParameterValue(
                     LaunchConfiguration('max_heading_error_deg'),
+                    value_type=float
+                ),
+
+                'enable_reverse_recovery': ParameterValue(
+                    LaunchConfiguration('enable_reverse_recovery'),
+                    value_type=bool
+                ),
+                'reverse_recovery_distance': ParameterValue(
+                    LaunchConfiguration('reverse_recovery_distance'),
+                    value_type=float
+                ),
+                'max_reverse_recovery_count': ParameterValue(
+                    LaunchConfiguration('max_reverse_recovery_count'),
+                    value_type=int
+                ),
+                'stop_on_nav_failure': ParameterValue(
+                    LaunchConfiguration('stop_on_nav_failure'),
+                    value_type=bool
+                ),
+
+                'recent_goal_radius': ParameterValue(
+                    LaunchConfiguration('recent_goal_radius'),
+                    value_type=float
+                ),
+                'recent_frontier_radius': ParameterValue(
+                    LaunchConfiguration('recent_frontier_radius'),
+                    value_type=float
+                ),
+                'recent_history_size': ParameterValue(
+                    LaunchConfiguration('recent_history_size'),
+                    value_type=int
+                ),
+                'min_progress_to_reset_reverse': ParameterValue(
+                    LaunchConfiguration('min_progress_to_reset_reverse'),
+                    value_type=float
+                ),
+                'multiview_angle_step_deg': ParameterValue(
+                    LaunchConfiguration('multiview_angle_step_deg'),
+                    value_type=float
+                ),
+                'multiview_lateral_offset': ParameterValue(
+                    LaunchConfiguration('multiview_lateral_offset'),
+                    value_type=float
+                ),
+                'global_fallback_enabled': ParameterValue(
+                    LaunchConfiguration('global_fallback_enabled'),
+                    value_type=bool
+                ),
+                'global_fallback_max_goal_distance': ParameterValue(
+                    LaunchConfiguration('global_fallback_max_goal_distance'),
+                    value_type=float
+                ),
+                'global_fallback_max_heading_error_deg': ParameterValue(
+                    LaunchConfiguration('global_fallback_max_heading_error_deg'),
+                    value_type=float
+                ),
+                'cluster_recent_radius': ParameterValue(
+                    LaunchConfiguration('cluster_recent_radius'),
+                    value_type=float
+                ),
+                'cluster_blacklist_radius': ParameterValue(
+                    LaunchConfiguration('cluster_blacklist_radius'),
+                    value_type=float
+                ),
+                'ackermann_heading_weight': ParameterValue(
+                    LaunchConfiguration('ackermann_heading_weight'),
+                    value_type=float
+                ),
+                'ackermann_final_yaw_weight': ParameterValue(
+                    LaunchConfiguration('ackermann_final_yaw_weight'),
+                    value_type=float
+                ),
+                'cluster_size_weight': ParameterValue(
+                    LaunchConfiguration('cluster_size_weight'),
+                    value_type=float
+                ),
+                'global_fallback_distance_bonus': ParameterValue(
+                    LaunchConfiguration('global_fallback_distance_bonus'),
                     value_type=float
                 ),
 
