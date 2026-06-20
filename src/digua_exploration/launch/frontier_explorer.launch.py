@@ -41,6 +41,16 @@ def generate_launch_description():
         DeclareLaunchArgument('ackermann_final_yaw_weight', default_value='0.20'),
         DeclareLaunchArgument('cluster_size_weight', default_value='0.015'),
         DeclareLaunchArgument('global_fallback_distance_bonus', default_value='0.20'),
+        DeclareLaunchArgument('staging_fallback_enabled', default_value='true'),
+        DeclareLaunchArgument('staging_sample_stride_cells', default_value='4'),
+        DeclareLaunchArgument('staging_clearance_radius', default_value='0.30'),
+        DeclareLaunchArgument('staging_min_distance', default_value='0.50'),
+        DeclareLaunchArgument('staging_max_distance', default_value='2.20'),
+        DeclareLaunchArgument('staging_max_heading_error_deg', default_value='75.0'),
+        DeclareLaunchArgument('staging_cluster_distance_weight', default_value='0.55'),
+        DeclareLaunchArgument('staging_robot_distance_weight', default_value='0.35'),
+        DeclareLaunchArgument('staging_heading_weight', default_value='0.80'),
+        DeclareLaunchArgument('staging_cluster_size_weight', default_value='0.020'),
 
         DeclareLaunchArgument('wait_after_goal', default_value='3.0'),
         DeclareLaunchArgument('goal_timeout_sec', default_value='60.0'),
@@ -165,6 +175,46 @@ def generate_launch_description():
                 ),
                 'global_fallback_distance_bonus': ParameterValue(
                     LaunchConfiguration('global_fallback_distance_bonus'),
+                    value_type=float
+                ),
+                'staging_fallback_enabled': ParameterValue(
+                    LaunchConfiguration('staging_fallback_enabled'),
+                    value_type=bool
+                ),
+                'staging_sample_stride_cells': ParameterValue(
+                    LaunchConfiguration('staging_sample_stride_cells'),
+                    value_type=int
+                ),
+                'staging_clearance_radius': ParameterValue(
+                    LaunchConfiguration('staging_clearance_radius'),
+                    value_type=float
+                ),
+                'staging_min_distance': ParameterValue(
+                    LaunchConfiguration('staging_min_distance'),
+                    value_type=float
+                ),
+                'staging_max_distance': ParameterValue(
+                    LaunchConfiguration('staging_max_distance'),
+                    value_type=float
+                ),
+                'staging_max_heading_error_deg': ParameterValue(
+                    LaunchConfiguration('staging_max_heading_error_deg'),
+                    value_type=float
+                ),
+                'staging_cluster_distance_weight': ParameterValue(
+                    LaunchConfiguration('staging_cluster_distance_weight'),
+                    value_type=float
+                ),
+                'staging_robot_distance_weight': ParameterValue(
+                    LaunchConfiguration('staging_robot_distance_weight'),
+                    value_type=float
+                ),
+                'staging_heading_weight': ParameterValue(
+                    LaunchConfiguration('staging_heading_weight'),
+                    value_type=float
+                ),
+                'staging_cluster_size_weight': ParameterValue(
+                    LaunchConfiguration('staging_cluster_size_weight'),
                     value_type=float
                 ),
 

@@ -85,6 +85,20 @@ class FrontierExplorerNode(Node):
         self.declare_parameter('cluster_size_weight', 0.015)
         self.declare_parameter('global_fallback_distance_bonus', 0.20)
 
+        # V3 strategy: staging waypoint fallback
+        # If both local and global frontier goals fail, move to a safe known-free
+        # staging point first, then continue frontier exploration.
+        self.declare_parameter('staging_fallback_enabled', True)
+        self.declare_parameter('staging_sample_stride_cells', 4)
+        self.declare_parameter('staging_clearance_radius', 0.30)
+        self.declare_parameter('staging_min_distance', 0.50)
+        self.declare_parameter('staging_max_distance', 2.20)
+        self.declare_parameter('staging_max_heading_error_deg', 75.0)
+        self.declare_parameter('staging_cluster_distance_weight', 0.55)
+        self.declare_parameter('staging_robot_distance_weight', 0.35)
+        self.declare_parameter('staging_heading_weight', 0.80)
+        self.declare_parameter('staging_cluster_size_weight', 0.020)
+
         self.map_topic = str(self.get_parameter('map_topic').value)
         self.action_name = str(self.get_parameter('action_name').value)
         self.map_frame = str(self.get_parameter('map_frame').value)
@@ -127,6 +141,19 @@ class FrontierExplorerNode(Node):
         self.ackermann_final_yaw_weight = float(self.get_parameter('ackermann_final_yaw_weight').value)
         self.cluster_size_weight = float(self.get_parameter('cluster_size_weight').value)
         self.global_fallback_distance_bonus = float(self.get_parameter('global_fallback_distance_bonus').value)
+
+        self.staging_fallback_enabled = bool(self.get_parameter('staging_fallback_enabled').value)
+        self.staging_sample_stride_cells = int(self.get_parameter('staging_sample_stride_cells').value)
+        self.staging_clearance_radius = float(self.get_parameter('staging_clearance_radius').value)
+        self.staging_min_distance = float(self.get_parameter('staging_min_distance').value)
+        self.staging_max_distance = float(self.get_parameter('staging_max_distance').value)
+        self.staging_max_heading_error = math.radians(
+            float(self.get_parameter('staging_max_heading_error_deg').value)
+        )
+        self.staging_cluster_distance_weight = float(self.get_parameter('staging_cluster_distance_weight').value)
+        self.staging_robot_distance_weight = float(self.get_parameter('staging_robot_distance_weight').value)
+        self.staging_heading_weight = float(self.get_parameter('staging_heading_weight').value)
+        self.staging_cluster_size_weight = float(self.get_parameter('staging_cluster_size_weight').value)
 
         self.latest_map = None
         self.blacklist = []
@@ -175,6 +202,12 @@ class FrontierExplorerNode(Node):
         self.get_logger().info(f'global_fallback_max_heading_error_deg: {math.degrees(self.global_fallback_max_heading_error):.1f}')
         self.get_logger().info(f'cluster_recent_radius: {self.cluster_recent_radius}')
         self.get_logger().info(f'cluster_blacklist_radius: {self.cluster_blacklist_radius}')
+        self.get_logger().info(f'staging_fallback_enabled: {self.staging_fallback_enabled}')
+        self.get_logger().info(f'staging_sample_stride_cells: {self.staging_sample_stride_cells}')
+        self.get_logger().info(f'staging_clearance_radius: {self.staging_clearance_radius}')
+        self.get_logger().info(f'staging_min_distance: {self.staging_min_distance}')
+        self.get_logger().info(f'staging_max_distance: {self.staging_max_distance}')
+        self.get_logger().info(f'staging_max_heading_error_deg: {math.degrees(self.staging_max_heading_error):.1f}')
 
     def map_callback(self, msg):
         self.latest_map = msg
@@ -571,6 +604,142 @@ class FrontierExplorerNode(Node):
 
         return None
 
+    def choose_staging_goal(self, grid, clusters, robot_x, robot_y, robot_yaw):
+        if not self.staging_fallback_enabled:
+            return None
+
+        cluster_infos = [self.cluster_info(grid, c) for c in clusters]
+        cluster_infos.sort(
+            key=lambda c: (-c['size'], math.hypot(c['x'] - robot_x, c['y'] - robot_y))
+        )
+
+        stride = max(2, int(self.staging_sample_stride_cells))
+        candidates = []
+
+        stats = {
+            'too_small': 0,
+            'cluster_blacklisted': 0,
+            'not_clear': 0,
+            'too_near': 0,
+            'too_far': 0,
+            'heading_too_large': 0,
+            'recent_goal': 0,
+            'line_blocked': 0,
+            'generated': 0,
+        }
+
+        # Limit to the largest/front-most clusters to avoid excessive CPU.
+        for cluster in cluster_infos[:12]:
+            if cluster['size'] < self.min_frontier_size:
+                stats['too_small'] += 1
+                continue
+
+            if self.is_cluster_blacklisted(cluster['x'], cluster['y']):
+                stats['cluster_blacklisted'] += 1
+                continue
+
+            cluster_recent_penalty = 1.0 if self.is_cluster_recent(cluster['x'], cluster['y']) else 0.0
+
+            for cy in range(1, grid.info.height - 1, stride):
+                for cx in range(1, grid.info.width - 1, stride):
+                    if not self.is_free_cell(grid, cx, cy):
+                        continue
+
+                    gx, gy = self.cell_to_world(grid, cx, cy)
+                    stats['generated'] += 1
+
+                    if not self.is_goal_clear(grid, gx, gy, self.staging_clearance_radius):
+                        stats['not_clear'] += 1
+                        continue
+
+                    dist_robot = math.hypot(gx - robot_x, gy - robot_y)
+                    if dist_robot < self.staging_min_distance:
+                        stats['too_near'] += 1
+                        continue
+                    if dist_robot > self.staging_max_distance:
+                        stats['too_far'] += 1
+                        continue
+
+                    if self.is_recent_point(gx, gy, self.recent_goals, self.recent_goal_radius):
+                        stats['recent_goal'] += 1
+                        continue
+
+                    travel_yaw = math.atan2(gy - robot_y, gx - robot_x)
+                    heading_error = abs(angle_diff(travel_yaw, robot_yaw))
+                    if heading_error > self.staging_max_heading_error:
+                        stats['heading_too_large'] += 1
+                        continue
+
+                    # Staging point should be able to "see" the target frontier cluster
+                    # without an occupied cell in between. Unknown cells are allowed.
+                    if not self.line_to_frontier_ok(grid, gx, gy, cluster['x'], cluster['y']):
+                        stats['line_blocked'] += 1
+                        continue
+
+                    final_yaw = math.atan2(cluster['y'] - gy, cluster['x'] - gx)
+                    final_yaw_error = abs(angle_diff(final_yaw, robot_yaw))
+                    dist_cluster = math.hypot(cluster['x'] - gx, cluster['y'] - gy)
+
+                    # Ackermann-friendly staging score:
+                    # - prefer large clusters
+                    # - avoid excessive steering from current pose
+                    # - avoid very long staging motions
+                    # - prefer positions that are close enough to observe the frontier
+                    # - penalize recent clusters but do not totally ban them
+                    score = 0.0
+                    score += self.staging_cluster_size_weight * cluster['size']
+                    score -= self.staging_robot_distance_weight * dist_robot
+                    score -= self.staging_cluster_distance_weight * dist_cluster
+                    score -= self.staging_heading_weight * heading_error
+                    score -= 0.20 * final_yaw_error
+                    score -= 0.80 * cluster_recent_penalty
+
+                    candidates.append({
+                        'x': gx,
+                        'y': gy,
+                        'yaw': final_yaw,
+                        'frontier_x': cluster['x'],
+                        'frontier_y': cluster['y'],
+                        'cluster_x': cluster['x'],
+                        'cluster_y': cluster['y'],
+                        'size': cluster['size'],
+                        'dist': dist_robot,
+                        'heading_error': heading_error,
+                        'final_yaw_error': final_yaw_error,
+                        'backoff': 0.0,
+                        'mode': 'staging',
+                        'score': score,
+                    })
+
+        if not candidates:
+            self.get_logger().info(
+                'staging fallback reject stats: '
+                f'generated={stats["generated"]}, '
+                f'too_small={stats["too_small"]}, '
+                f'cluster_blacklisted={stats["cluster_blacklisted"]}, '
+                f'not_clear={stats["not_clear"]}, '
+                f'too_near={stats["too_near"]}, '
+                f'too_far={stats["too_far"]}, '
+                f'heading_too_large={stats["heading_too_large"]}, '
+                f'recent_goal={stats["recent_goal"]}, '
+                f'line_blocked={stats["line_blocked"]}'
+            )
+            return None
+
+        candidates.sort(key=lambda g: g['score'], reverse=True)
+        goal = candidates[0]
+
+        self.get_logger().info(
+            f'selected staging waypoint fallback goal: '
+            f'x={goal["x"]:.3f}, y={goal["y"]:.3f}, '
+            f'target_cluster=({goal["cluster_x"]:.3f}, {goal["cluster_y"]:.3f}), '
+            f'dist={goal["dist"]:.3f}, size={goal["size"]}, '
+            f'heading_error={math.degrees(goal["heading_error"]):.1f}deg, '
+            f'final_yaw_error={math.degrees(goal["final_yaw_error"]):.1f}deg, '
+            f'score={goal["score"]:.3f}'
+        )
+        return goal
+
     def make_reverse_recovery_goal(self, grid, robot_x, robot_y, robot_yaw):
         gx = robot_x - self.reverse_recovery_distance * math.cos(robot_yaw)
         gy = robot_y - self.reverse_recovery_distance * math.sin(robot_yaw)
@@ -667,7 +836,11 @@ class FrontierExplorerNode(Node):
             goal = self.choose_goal(grid, clusters, robot_x, robot_y, robot_yaw)
 
             if goal is None:
-                self.get_logger().info('no valid frontier goal found')
+                self.get_logger().info('no direct frontier goal found, trying staging waypoint fallback')
+                goal = self.choose_staging_goal(grid, clusters, robot_x, robot_y, robot_yaw)
+
+            if goal is None:
+                self.get_logger().info('no valid frontier or staging goal found')
 
                 if self.enable_reverse_recovery and reverse_recovery_count < self.max_reverse_recovery_count:
                     self.get_logger().info(
