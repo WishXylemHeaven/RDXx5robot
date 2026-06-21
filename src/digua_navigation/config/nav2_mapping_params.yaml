@@ -40,6 +40,7 @@ amcl:
     scan_topic: scan
 bt_navigator:
   ros__parameters:
+    default_nav_to_pose_bt_xml: "/home/sunrise/digua_ws/src/digua_navigation/behavior_trees/navigate_to_pose_ackermann_no_spin.xml"
     use_sim_time: false
     global_frame: map
     robot_base_frame: base_link

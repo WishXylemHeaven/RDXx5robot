@@ -11,6 +11,7 @@ install(DIRECTORY
   launch
   config
   rviz
+  behavior_trees
   DESTINATION share/${PROJECT_NAME}
 )
 
