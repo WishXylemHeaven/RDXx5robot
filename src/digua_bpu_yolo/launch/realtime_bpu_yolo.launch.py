@@ -24,7 +24,12 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "publish_labels",
             default_value="",
-            description="Comma-separated label filter, empty means publish all.",
+            description="Comma-separated label filter.",
+        ),
+        DeclareLaunchArgument(
+            "use_semantic_whitelist",
+            default_value="true",
+            description="Use semantic_mapping.yaml class_whitelist when publish_labels is empty.",
         ),
         Node(
             package="digua_bpu_yolo",
@@ -44,7 +49,7 @@ def generate_launch_description():
                 "infer_fps": LaunchConfiguration("infer_fps"),
                 "publish_empty": True,
                 "publish_labels": LaunchConfiguration("publish_labels"),
-                "use_semantic_whitelist": True,
+                "use_semantic_whitelist": LaunchConfiguration("use_semantic_whitelist"),
                 "semantic_whitelist_yaml": "/home/sunrise/digua_ws/src/digua_semantic_mapping/config/semantic_mapping.yaml",
                 "aliases_file": "/home/sunrise/digua_ws/src/digua_bpu_yolo/config/oiv7_aliases.json",
             }],
