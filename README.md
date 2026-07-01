@@ -40,13 +40,23 @@
 - 语义地图：`digua_semantic_mapping` 将目标检测、深度图和 TF 转换融合为 `map` 坐标系下的语义目标。
 - 调试验证：`tools` 中包含底盘串口、雷达方向、IMU 方向、EKF 航向、硬件总检和地图导出等脚本。
 
+## 系统特点
+
+这个工作空间不是单一算法 demo，而是围绕一台真实移动机器人整理出来的工程项目。它的价值主要体现在三点：
+
+- **真实硬件闭环**：从 `/cmd_vel` 到下位机串口控制，再到 `/odom`、`/imu`、`/battery` 回传，底盘控制链路已经接入 ROS 2。
+- **建图导航闭环**：RTAB-Map 负责在线建图和视觉定位，Nav2 负责路径规划、局部避障和目标点执行，命名点位文件承担巡航和语义指令的中间层。
+- **视觉语义闭环**：YOLO 在 RDK X5 BPU 上推理，检测结果结合深度图和 TF 转换写入语义地图，再由语义导航节点转换为 Nav2 目标。
+
+因此，本仓库既可以作为比赛作品的工程源码，也适合作为 RDK X5、ROS 2 移动机器人、Nav2、RTAB-Map、BPU 视觉推理和语义地图的综合学习项目。
+
 ## 仓库规模
 
-文件统计基于当前仓库快照，忽略隐藏目录，仅统计工程可见内容。新增本 README 后，仓库约有 **524 个文件**，其中 ROS 2 源码与第三方驱动主要集中在 `src/`。
+文件统计基于当前仓库快照，忽略隐藏目录，仅统计工程可见内容。仓库约有 **529 个文件**，其中 ROS 2 源码与第三方驱动主要集中在 `src/`。
 
 | 路径 | 文件数 | 作用 |
 | --- | ---: | --- |
-| `src/` | 425 | ROS 2 工作空间源码，包含自研机器人功能包、传感器驱动和第三方 SDK。 |
+| `src/` | 430 | ROS 2 工作空间源码，包含自研机器人功能包、传感器驱动和第三方 SDK。 |
 | `calib_images/` | 50 | 相机或模型标定图片，当前为一组 `model_calib_20260514_210005` 标定样本。 |
 | `config/` | 23 | BPU/TROS 示例配置、类别列表和测试图片，主要用于模型推理或部署验证。 |
 | `tools/` | 10 | 硬件检查、传感器方向校验、地图集导出与语义白名单检查脚本。 |
@@ -55,21 +65,21 @@
 | `digua_navigation_data/` | 1 | 导航业务数据，当前保存 `named_poses.yaml` 命名点位。 |
 | `test_logs/` | 1 | 调试记录与测试日志，当前包含视觉 ICP/TF 静态测试日志。 |
 | `Ackermann_Steering_Chassis_Models/` | 1 | 阿克曼底盘机械 STEP 模型。 |
-| 根目录文件 | 6 | Git 配置、许可证、旧版说明、README、相机反馈样例图等入口文件。 |
+| 根目录文件 | 6 | Git 配置、许可证、README、快速开始文档、相机反馈样例图等入口文件。 |
 
 ## ROS 2 包说明
 
 | 包或模块 | 文件数 | 类型 | 说明 |
 | --- | ---: | --- | --- |
-| `base_control_ros2` | 19 | `ament_python` | 底盘串口控制节点，连接 `/cmd_vel` 与下位机，发布里程计、电池和 IMU 状态。 |
-| `digua_bringup` | 7 | `ament_cmake` | 真实机器人总启动入口，组合 URDF、底盘、EKF、雷达、相机和 RGB-D 同步。 |
-| `digua_description` | 5 | `ament_cmake` | 机器人 URDF/Xacro、RViz 与模型显示启动文件。 |
-| `digua_mapping` | 7 | `ament_cmake` | RTAB-Map 在线建图、定位和 Nav2 栅格地图保存启动文件。 |
-| `digua_navigation` | 20 | `ament_cmake` | Nav2/AMCL 参数、阿克曼行为树、命名点位保存、点位导航和巡航脚本。 |
-| `digua_exploration` | 7 | `ament_python` | Frontier 自主探索节点，根据未知边界生成 Nav2 目标点。 |
-| `digua_bpu_yolo` | 17 | `ament_python` | RDK X5 BPU YOLO 推理封装，发布 `/semantic/detections_json` 检测结果。 |
-| `digua_semantic_mapping` | 19 | `ament_python` | 语义观测、语义融合、语义地图查询、RViz marker 和语义目标导航。 |
-| `ros2_astra_camera` | 105 | `ament_cmake` | Astra/Orbbec RGB-D 相机 ROS 2 驱动和消息定义。 |
+| `base_control_ros2` | 18 | `ament_python` | 底盘串口控制节点，连接 `/cmd_vel` 与下位机，发布里程计、电池和 IMU 状态。 |
+| `digua_bringup` | 8 | `ament_cmake` | 真实机器人总启动入口，组合 URDF、底盘、EKF、雷达、相机和 RGB-D 同步。 |
+| `digua_description` | 6 | `ament_cmake` | 机器人 URDF/Xacro、RViz 与模型显示启动文件。 |
+| `digua_mapping` | 8 | `ament_cmake` | RTAB-Map 在线建图、定位和 Nav2 栅格地图保存启动文件。 |
+| `digua_navigation` | 21 | `ament_cmake` | Nav2/AMCL 参数、阿克曼行为树、命名点位保存、点位导航和巡航脚本。 |
+| `digua_exploration` | 8 | `ament_python` | Frontier 自主探索节点，根据未知边界生成 Nav2 目标点。 |
+| `digua_bpu_yolo` | 18 | `ament_python` | RDK X5 BPU YOLO 推理封装，发布 `/semantic/detections_json` 检测结果。 |
+| `digua_semantic_mapping` | 20 | `ament_python` | 语义观测、语义融合、语义地图查询、RViz marker 和语义目标导航。 |
+| `ros2_astra_camera` | 104 | `ament_cmake` | Astra/Orbbec RGB-D 相机 ROS 2 驱动和消息定义。 |
 | `ydlidar_ros2_driver` | 29 | `ament_cmake` | YDLIDAR ROS 2 驱动，当前包含 X2 等多型号参数文件。 |
 | `YDLidar-SDK` | 190 | CMake/SDK | YDLIDAR 官方 SDK 源码、示例和文档。 |
 
@@ -97,7 +107,7 @@ RDXx5robot-main/
 ├── tools/                            # 自检与调试工具
 ├── test_logs/                        # 测试日志
 ├── Ackermann_Steering_Chassis_Models/# 机械模型
-├── README_RDXx5robot.md              # 早期项目说明
+├── QUICK_START.md                    # 快速开始、常用命令和关键数据文件
 └── README.md                         # GitHub 首页说明
 ```
 
@@ -148,134 +158,13 @@ flowchart LR
     Navigation --> Control
 ```
 
-## 快速开始
+## 快速开始与常用命令
 
-以下命令应在 RDK X5 的 Ubuntu/ROS 2 环境中执行。仓库中多个脚本和 launch 文件默认使用 `~/digua_ws` 或 `/home/sunrise/digua_ws`，建议将本仓库作为工作空间根目录放在该路径，或者同步修改相关配置中的绝对路径。
+快速启动、分模块启动、建图、定位、导航、语义地图管理、命名点位导航以及关键数据文件说明已经独立到：
 
-### 1. 构建工作空间
+> [QUICK_START.md：快速开始与关键数据文件](./QUICK_START.md)
 
-```bash
-cd ~/digua_ws
-rosdep install --from-paths src --ignore-src -r -y
-colcon build --symlink-install
-source install/setup.bash
-```
-
-如果依赖安装失败，优先确认板端 ROS 2/TROS、Nav2、RTAB-Map、robot_localization、Astra 相机驱动、YDLIDAR 依赖和 RDK X5 BPU 运行库是否已经安装。
-
-### 2. 首次上车检查
-
-```bash
-# 总体硬件检查
-python3 tools/digua_hw_check.py
-
-# 底盘串口
-python3 tools/check_base_serial_ttyS1.py
-
-# 雷达方向
-python3 tools/check_lidar_direction.py
-
-# IMU 方向
-python3 tools/check_imu_direction.py
-
-# EKF 航向
-python3 tools/check_ekf_yaw.py
-```
-
-### 3. 启动真实机器人基础系统
-
-```bash
-source ~/digua_ws/install/setup.bash
-ros2 launch digua_bringup bringup_real.launch.py port:=/dev/ttyS1 baudrate:=115200
-```
-
-`bringup_real.launch.py` 默认可按参数开关启动机器人描述、底盘控制、EKF、YDLIDAR X2、Astra S 相机和 RGB-D 同步节点。若只验证底盘，可单独运行：
-
-```bash
-ros2 launch base_control_ros2 base_control.launch.py port:=/dev/ttyS1 baudrate:=115200
-```
-
-### 4. 在线建图与保存地图
-
-```bash
-# 在线建图，map_name 为空时会自动生成 digua_online_时间戳
-ros2 launch digua_mapping rtabmap_online.launch.py map_name:=demo_room
-
-# 将 /rtabmap/map 保存为 Nav2 可用的 yaml/pgm 地图
-ros2 launch digua_mapping save_nav2_map.launch.py map_name:=demo_room
-```
-
-地图数据默认写入：
-
-```text
-~/digua_ws/digua_maps/
-├── current_map_name.txt
-├── rtabmap/
-└── nav2/
-```
-
-### 5. 定位与导航
-
-```bash
-# 读取 current_map_name.txt 或 nav2 目录下最新地图，启动 AMCL 定位
-ros2 launch digua_navigation localization.launch.py
-
-# 启动 Nav2 导航栈
-ros2 launch digua_navigation navigation.launch.py
-```
-
-命名点位数据保存在 `digua_navigation_data/named_poses.yaml`。常用脚本包括：
-
-```bash
-# 查看已保存点位
-python3 src/digua_navigation/scripts/list_named_poses.py
-
-# 保存当前机器人位姿为命名点位
-python3 src/digua_navigation/scripts/save_named_pose.py Waypoint_5
-
-# 导航到某个命名点位
-python3 src/digua_navigation/scripts/go_to_named_pose.py Waypoint_1
-
-# 按多个命名点位巡航
-python3 src/digua_navigation/scripts/follow_named_route.py Waypoint_1 Waypoint_2 Waypoint_3 --loops 1
-```
-
-### 6. 自主探索
-
-```bash
-ros2 launch digua_navigation navigation_exploration.launch.py
-ros2 launch digua_exploration frontier_explorer.launch.py dry_run:=false once:=false
-```
-
-`frontier_explorer.launch.py` 默认 `dry_run:=true`、`once:=true`，实际移动前需要显式关闭 dry-run，并确认 Nav2、TF、地图和底盘控制均正常。
-
-### 7. BPU 视觉识别与语义地图
-
-```bash
-# 实时 BPU YOLO，发布 /semantic/detections_json
-ros2 launch digua_bpu_yolo realtime_bpu_yolo.launch.py
-
-# 启动语义观测、融合和 RViz marker
-ros2 launch digua_semantic_mapping semantic_mapping_current.launch.py
-
-# 查看语义地图摘要或对象列表
-ros2 run digua_semantic_mapping semantic_map_tool --summary --list
-
-# 导航到某类语义目标附近，例如 bottle
-ros2 run digua_semantic_mapping semantic_goto_node bottle
-```
-
-语义地图默认围绕当前地图名组织，核心数据结构是 `semantic_map.json`，对象包含类别、`map` 坐标、置信度、观测次数和确认状态等字段。
-
-## 关键数据文件
-
-- `digua_navigation_data/named_poses.yaml`：命名导航点位，例如 `Waypoint_1` 到 `Waypoint_4`。
-- `digua_maps/current_map_name.txt`：当前地图名，建图、定位、语义地图会优先读取它。
-- `digua_maps/semantic/semantic_map.json`：语义目标记录示例，当前含 `footwear`、`bottle` 等 confirmed 目标。
-- `src/digua_semantic_mapping/config/semantic_mapping.yaml`：语义观测、类别白名单、动态类别、融合距离和 marker 发布配置。
-- `models/bpu_yolov8s_oiv7/yolov8s-oiv7_bayese_640x640_nv12.bin`：面向 RDK X5 BPU 的 YOLOv8s OIV7 模型。
-- `src/digua_navigation/behavior_trees/navigate_to_pose_ackermann_no_spin.xml`：适配阿克曼底盘的 Nav2 行为树。
-- `render_feedback_0_0.jpeg`：一次相机/视觉回传样例图。
+主 README 只保留项目总览；实际调车、建图和比赛演示前建议直接打开上面的文档按场景查命令。
 
 ## 当前状态与下一步
 
