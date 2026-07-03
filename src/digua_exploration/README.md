@@ -36,6 +36,26 @@ ros2 launch digua_exploration frontier_explorer.launch.py
 ros2 launch digua_exploration frontier_explorer.launch.py dry_run:=false once:=false max_goals:=20
 ```
 
+## 在整个项目里的作用
+
+`digua_exploration` 是在线建图阶段的自动“找路人”。当 `digua_mapping` 正在扩展地图、`digua_navigation` 已经启动 Nav2、`digua_bringup` 提供底盘与传感器数据时，本包负责不断寻找新的未知边界，并把这些边界转化为导航目标。
+
+它和主要包的关系如下：
+
+| 相关包 | 关系 |
+| --- | --- |
+| `digua_bringup` | 提供雷达、相机、底盘、EKF 和 TF，是探索运行的底层基础。 |
+| `digua_mapping` | 提供 `/rtabmap/map`，探索节点依赖这张地图寻找 frontier。 |
+| `digua_navigation` | 提供 Nav2 `navigate_to_pose` action，执行探索节点发出的目标。 |
+| `digua_description` | 提供 `base_footprint` 等 TF 关系，保证地图坐标、机器人坐标和传感器坐标一致。 |
+| `base_control_ros2` | 最终接收 Nav2 输出的 `/cmd_vel`，驱动底盘运动。 |
+
+一句话概括：
+
+```text
+digua_exploration = 基于 RTAB-Map 栅格地图的 frontier 选点器 + Nav2 探索目标发送器
+```
+
 ## 文件树
 
 ```text
@@ -249,26 +269,6 @@ ros2 run tf2_ros tf2_echo map base_footprint
 
 ```bash
 ros2 action info /navigate_to_pose
-```
-
-## 在整个项目里的作用
-
-`digua_exploration` 是在线建图阶段的自动“找路人”。当 `digua_mapping` 正在扩展地图、`digua_navigation` 已经启动 Nav2、`digua_bringup` 提供底盘与传感器数据时，本包负责不断寻找新的未知边界，并把这些边界转化为导航目标。
-
-它和主要包的关系如下：
-
-| 相关包 | 关系 |
-| --- | --- |
-| `digua_bringup` | 提供雷达、相机、底盘、EKF 和 TF，是探索运行的底层基础。 |
-| `digua_mapping` | 提供 `/rtabmap/map`，探索节点依赖这张地图寻找 frontier。 |
-| `digua_navigation` | 提供 Nav2 `navigate_to_pose` action，执行探索节点发出的目标。 |
-| `digua_description` | 提供 `base_footprint` 等 TF 关系，保证地图坐标、机器人坐标和传感器坐标一致。 |
-| `base_control_ros2` | 最终接收 Nav2 输出的 `/cmd_vel`，驱动底盘运动。 |
-
-一句话概括：
-
-```text
-digua_exploration = 基于 RTAB-Map 栅格地图的 frontier 选点器 + Nav2 探索目标发送器
 ```
 
 ## 调试建议

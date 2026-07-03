@@ -205,6 +205,12 @@ Suggested next steps:
 5. Separate maps, semantic maps, named poses, and test logs into sample data and runtime data to avoid mixing generated artifacts into later commits.
 6. Add a unified bringup self-check script for serial devices, TF, topics, Nav2 lifecycle, BPU models, and map files.
 
+## Contact
+
+Project maintainer: **Wang**.
+
+- Email: [wxh_13424290329@qq.com](mailto:wxh_13424290329@qq.com)
+
 ## Maintenance Conventions
 
 - Project-maintained ROS 2 packages live under `src/digua_*` or clearly named functional directories.

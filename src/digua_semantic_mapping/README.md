@@ -36,6 +36,22 @@ ros2 run digua_semantic_mapping semantic_goto_node footwear --distance 0.6
 ros2 run digua_semantic_mapping semantic_goto_node --id 4 --distance 0.6
 ```
 
+## 与其他包的关系
+
+| 相关包 | 关系 |
+| --- | --- |
+| `digua_bpu_yolo` | 发布 `/semantic/detections_json`，是语义地图的检测输入。 |
+| `ros2_astra_camera` / `astra_camera` | 提供深度图和相机内参。 |
+| `digua_description` | 提供相机、底盘、雷达等坐标关系的基础 TF。 |
+| `digua_mapping` | 提供稳定的 `map` 坐标系；`semantic_mapping_current.launch.py` 依赖 `current_map_name.txt`。 |
+| `digua_navigation` | 执行 `semantic_goto_node` 发出的 `/navigate_to_pose` 目标。 |
+
+一句话概括：
+
+```text
+digua_semantic_mapping = YOLO 检测 + 深度/TF 投影 + 多次观测融合 + 语义目标导航
+```
+
 ## 文件树
 
 ```text
@@ -452,22 +468,6 @@ ros2 run digua_semantic_mapping semantic_goto_node --id 4 --distance 0.6
 
 ```bash
 ros2 run digua_semantic_mapping semantic_goto_node footwear --distance 0.6 --dry-run
-```
-
-## 与其他包的关系
-
-| 相关包 | 关系 |
-| --- | --- |
-| `digua_bpu_yolo` | 发布 `/semantic/detections_json`，是语义地图的检测输入。 |
-| `ros2_astra_camera` / `astra_camera` | 提供深度图和相机内参。 |
-| `digua_description` | 提供相机、底盘、雷达等坐标关系的基础 TF。 |
-| `digua_mapping` | 提供稳定的 `map` 坐标系；`semantic_mapping_current.launch.py` 依赖 `current_map_name.txt`。 |
-| `digua_navigation` | 执行 `semantic_goto_node` 发出的 `/navigate_to_pose` 目标。 |
-
-一句话概括：
-
-```text
-digua_semantic_mapping = YOLO 检测 + 深度/TF 投影 + 多次观测融合 + 语义目标导航
 ```
 
 ## 调试建议

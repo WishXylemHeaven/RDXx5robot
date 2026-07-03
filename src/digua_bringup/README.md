@@ -25,6 +25,16 @@ digua_mapping / digua_navigation / digua_semantic_mapping
 ros2 launch digua_bringup bringup_real.launch.py
 ```
 
+## 在整个项目里的作用
+
+`digua_bringup` 是地瓜机器人从“零散功能包”进入“整车可运行状态”的入口。它把底盘、雷达、相机、TF 和 EKF 的启动顺序、默认参数和互斥关系整理到一起，使后续建图、导航、探索、YOLO 识别和语义地图节点可以直接建立在稳定的底层数据流上。
+
+一句话概括：
+
+```text
+digua_bringup = 真实机器人底层传感器、底盘与 TF/EKF 的总启动编排层
+```
+
 ## 文件树
 
 ```text
@@ -269,14 +279,4 @@ ros2 run tf2_ros tf2_echo odom base_footprint
 
 ```bash
 ros2 topic hz /camera/rgbd_image
-```
-
-## 在整个项目里的作用
-
-`digua_bringup` 是地瓜机器人从“零散功能包”进入“整车可运行状态”的入口。它把底盘、雷达、相机、TF 和 EKF 的启动顺序、默认参数和互斥关系整理到一起，使后续建图、导航、探索、YOLO 识别和语义地图节点可以直接建立在稳定的底层数据流上。
-
-一句话概括：
-
-```text
-digua_bringup = 真实机器人底层传感器、底盘与 TF/EKF 的总启动编排层
 ```

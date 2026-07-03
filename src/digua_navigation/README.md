@@ -41,6 +41,22 @@ ros2 run digua_navigation save_named_pose.py home
 ros2 run digua_navigation go_to_named_pose.py home --timeout 180
 ```
 
+## 在整个项目里的作用
+
+`digua_navigation` 是整车自主移动能力的执行层：
+
+- `digua_mapping` 负责建图和保存 Nav2 地图，本包负责加载地图并定位。
+- `digua_bringup` 提供底盘、雷达、EKF、相机和 TF，本包利用这些输入完成路径规划和避障。
+- `base_control_ros2` 接收本包最终输出的 `/cmd_vel` 并驱动底盘。
+- `digua_exploration` 把 frontier 转成 `/navigate_to_pose` 目标，本包负责执行这些目标。
+- `digua_semantic_mapping` 把语义目标转成地图坐标，本包负责导航到目标附近。
+
+一句话概括：
+
+```text
+digua_navigation = AMCL 2D 定位 + Nav2 阿克曼导航 + 命名点位工具 + 巡航脚本
+```
+
 ## 文件树
 
 ```text
@@ -333,22 +349,6 @@ ros2 run digua_semantic_mapping semantic_goto_node --id 4 --distance 0.6
 ```
 
 这些语义命令最终仍会转换成 Nav2 的 `/navigate_to_pose` 目标，所以它们依赖本包启动的 Nav2 导航栈。
-
-## 在整个项目里的作用
-
-`digua_navigation` 是整车自主移动能力的执行层：
-
-- `digua_mapping` 负责建图和保存 Nav2 地图，本包负责加载地图并定位。
-- `digua_bringup` 提供底盘、雷达、EKF、相机和 TF，本包利用这些输入完成路径规划和避障。
-- `base_control_ros2` 接收本包最终输出的 `/cmd_vel` 并驱动底盘。
-- `digua_exploration` 把 frontier 转成 `/navigate_to_pose` 目标，本包负责执行这些目标。
-- `digua_semantic_mapping` 把语义目标转成地图坐标，本包负责导航到目标附近。
-
-一句话概括：
-
-```text
-digua_navigation = AMCL 2D 定位 + Nav2 阿克曼导航 + 命名点位工具 + 巡航脚本
-```
 
 ## 使用建议
 

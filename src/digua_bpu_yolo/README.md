@@ -22,6 +22,16 @@ digua_semantic_mapping
 semantic_map.json / 语义目标导航
 ```
 
+## 在整个项目里的作用
+
+`digua_bpu_yolo` 是地瓜机器人“看见物体”的入口。它不负责深度定位，也不直接写入语义地图；它只负责把相机图像转换成稳定、可过滤、可复用的二维目标检测结果。后续的 `digua_semantic_mapping` 会继续结合深度图、相机内参和 TF，把二维检测框转换成 `map` 坐标系下的语义目标。
+
+一句话概括：
+
+```text
+digua_bpu_yolo = RDK X5 BPU 视觉检测结果 -> 语义地图观测输入
+```
+
 ## 文件树
 
 ```text
@@ -291,14 +301,4 @@ ros2 launch digua_bpu_yolo offline_detections_pub.launch.py
 
 ```bash
 ros2 launch digua_bpu_yolo digua_bpu_yolo_feedback.launch.py
-```
-
-## 在整个项目里的作用
-
-`digua_bpu_yolo` 是地瓜机器人“看见物体”的入口。它不负责深度定位，也不直接写入语义地图；它只负责把相机图像转换成稳定、可过滤、可复用的二维目标检测结果。后续的 `digua_semantic_mapping` 会继续结合深度图、相机内参和 TF，把二维检测框转换成 `map` 坐标系下的语义目标。
-
-一句话概括：
-
-```text
-digua_bpu_yolo = RDK X5 BPU 视觉检测结果 -> 语义地图观测输入
 ```

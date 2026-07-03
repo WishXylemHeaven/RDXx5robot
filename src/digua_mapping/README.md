@@ -34,6 +34,23 @@ ros2 launch digua_mapping rtabmap_localization_visicp.launch.py
 ros2 launch digua_mapping rtabmap_localization_visual_3dof.launch.py
 ```
 
+## 在整个项目里的作用
+
+`digua_mapping` 是几何地图和视觉定位的中枢：
+
+- `digua_bringup` 先启动底盘、EKF、雷达、相机和 RGB-D 同步，为本包提供 `/scan`、`/camera/rgbd_image`、`/odometry/filtered` 和 TF。
+- `digua_mapping` 在线建图生成 RTAB-Map `.db`，并输出 `/rtabmap/map`。
+- `save_nav2_map.launch.py` 把 `/rtabmap/map` 保存成 Nav2/AMCL 所需的 `.yaml/.pgm`。
+- `digua_navigation` 可以使用 AMCL 2D 定位，也可以在 RTAB-Map 定位提供 `map -> odom` 时执行导航。
+- `digua_exploration` 依赖在线建图期间的 `/rtabmap/map` 自动寻找 frontier。
+- `digua_semantic_mapping` 依赖稳定的 `map` 坐标系，把视觉识别结果落到语义地图中。
+
+一句话概括：
+
+```text
+digua_mapping = RTAB-Map 在线建图 + RTAB-Map 视觉定位 + Nav2 2D 地图导出
+```
+
 ## 文件树
 
 ```text
@@ -297,23 +314,6 @@ ros2 run tf2_ros tf2_echo map odom
 
 ```bash
 cat ~/digua_ws/digua_maps/current_map_name.txt
-```
-
-## 在整个项目里的作用
-
-`digua_mapping` 是几何地图和视觉定位的中枢：
-
-- `digua_bringup` 先启动底盘、EKF、雷达、相机和 RGB-D 同步，为本包提供 `/scan`、`/camera/rgbd_image`、`/odometry/filtered` 和 TF。
-- `digua_mapping` 在线建图生成 RTAB-Map `.db`，并输出 `/rtabmap/map`。
-- `save_nav2_map.launch.py` 把 `/rtabmap/map` 保存成 Nav2/AMCL 所需的 `.yaml/.pgm`。
-- `digua_navigation` 可以使用 AMCL 2D 定位，也可以在 RTAB-Map 定位提供 `map -> odom` 时执行导航。
-- `digua_exploration` 依赖在线建图期间的 `/rtabmap/map` 自动寻找 frontier。
-- `digua_semantic_mapping` 依赖稳定的 `map` 坐标系，把视觉识别结果落到语义地图中。
-
-一句话概括：
-
-```text
-digua_mapping = RTAB-Map 在线建图 + RTAB-Map 视觉定位 + Nav2 2D 地图导出
 ```
 
 ## 使用建议

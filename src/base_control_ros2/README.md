@@ -20,6 +20,16 @@ Nano / STM32 底盘控制板
 电机、转向舵机、编码器、IMU、电池检测
 ```
 
+## 在整个项目里的作用
+
+`base_control_ros2` 是地瓜机器人移动能力的硬件抽象层。上层不需要直接理解底盘串口协议，只需要发布标准 `/cmd_vel`；本包负责把速度指令下发到底盘控制板，并把底层状态转换成 ROS 2 标准消息。它让 Nav2、自主探索、命名点位导航、语义目标导航和后续飞书/语音交互都可以通过统一接口控制真实机器人。
+
+一句话概括：
+
+```text
+base_control_ros2 = ROS 2 上层算法 与 真实底盘控制板 之间的串口桥接驱动
+```
+
 在完整系统中，`base_control_ros2` 通常只负责底盘原始数据和串口控制；`robot_localization` 的 EKF 节点负责融合 `/odom` 与 `/imu`，并发布最终的 `odom -> base_footprint` TF。为了避免 TF 冲突，本包的 launch 文件默认关闭 `broadcast_odom_tf`。
 
 ## 文件树
@@ -294,14 +304,4 @@ ls -l /dev/ttyACM*
 
 ```bash
 sudo bash src/base_control_ros2/script/move_base_udev.sh
-```
-
-## 在整个项目里的作用
-
-`base_control_ros2` 是地瓜机器人移动能力的硬件抽象层。上层不需要直接理解底盘串口协议，只需要发布标准 `/cmd_vel`；本包负责把速度指令下发到底盘控制板，并把底层状态转换成 ROS 2 标准消息。它让 Nav2、自主探索、命名点位导航、语义目标导航和后续飞书/语音交互都可以通过统一接口控制真实机器人。
-
-一句话概括：
-
-```text
-base_control_ros2 = ROS 2 上层算法 与 真实底盘控制板 之间的串口桥接驱动
 ```

@@ -28,6 +28,21 @@ ros2 launch digua_description display.launch.py rviz:=false
 ros2 launch digua_description display.launch.py rviz:=true
 ```
 
+## 在整个项目里的作用
+
+`digua_description` 是整车空间关系的源头。建图、定位、导航和语义地图都依赖正确的 TF：
+
+- `digua_mapping` 需要知道 `base_footprint`、`laser_frame`、`camera_link` 等关系，才能融合雷达、RGB-D 和里程计。
+- `digua_navigation` 需要稳定的 `base_footprint` 和传感器 TF，才能正确生成代价地图和避障行为。
+- `digua_semantic_mapping` 需要相机坐标系到机器人/地图坐标系的变换，才能把二维检测框和深度转换为地图中的语义目标。
+- `digua_bringup` 会 include 本包的 `display.launch.py`，作为整车启动时的模型和 TF 发布入口。
+
+一句话概括：
+
+```text
+digua_description = 地瓜机器人 URDF 模型 + 传感器安装 TF + RViz 可视化入口
+```
+
 ## 文件树
 
 ```text
@@ -174,19 +189,4 @@ ros2 run tf2_ros tf2_echo base_link camera_link
 
 ```bash
 ros2 run tf2_ros tf2_echo base_link imu
-```
-
-## 在整个项目里的作用
-
-`digua_description` 是整车空间关系的源头。建图、定位、导航和语义地图都依赖正确的 TF：
-
-- `digua_mapping` 需要知道 `base_footprint`、`laser_frame`、`camera_link` 等关系，才能融合雷达、RGB-D 和里程计。
-- `digua_navigation` 需要稳定的 `base_footprint` 和传感器 TF，才能正确生成代价地图和避障行为。
-- `digua_semantic_mapping` 需要相机坐标系到机器人/地图坐标系的变换，才能把二维检测框和深度转换为地图中的语义目标。
-- `digua_bringup` 会 include 本包的 `display.launch.py`，作为整车启动时的模型和 TF 发布入口。
-
-一句话概括：
-
-```text
-digua_description = 地瓜机器人 URDF 模型 + 传感器安装 TF + RViz 可视化入口
 ```
