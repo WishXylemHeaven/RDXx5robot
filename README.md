@@ -1,140 +1,166 @@
-# 地瓜机器人 / RDXx5robot
+<div align="center">
 
-基于 **RDK X5 + ROS 2** 的室内语义交互导航机器人工作空间。项目面向室内服务、远程巡检、无人值守看护和机器人教学科研场景，目标是让机器人完成从环境感知、建图定位、路径导航、视觉识别、语义地图构建到自然语言任务执行的闭环。
+<p>
+  <img src="./rdxx5-robot-hero.png" alt="Digua Robot hero banner" width="100%">
+</p>
 
-本仓库当前重点保存 ROS 2 工作空间源码、机器人模型、地图与语义数据、BPU 视觉模型、调试脚本和测试资料。作品报告中描述的飞书机器人、DeepSeek API、图片/视频/录音回传等远程交互能力属于系统闭环的一部分；当前仓库主要承载其下游可执行的机器人能力。
+# Digua Robot / RDXx5robot
 
-## 项目定位
+<p>
+  <a href="./README.md"><strong>English</strong></a>
+  |
+  <a href="./README.zh-CN.md"><strong>简体中文</strong></a>
+</p>
 
-地瓜机器人是一套运行在 RDK X5 上的室内移动机器人系统：
+<p>
+  <img alt="License: Apache-2.0" src="https://img.shields.io/badge/License-Apache--2.0-blue">
+  <img alt="ROS 2" src="https://img.shields.io/badge/ROS%202-Humble-22314E">
+  <img alt="Platform: RDK X5" src="https://img.shields.io/badge/Platform-RDK%20X5-orange">
+  <img alt="Robot: Ackermann chassis" src="https://img.shields.io/badge/Robot-Ackermann%20Chassis-green">
+  <img alt="Stack: Nav2 RTAB-Map BPU YOLO" src="https://img.shields.io/badge/Stack-Nav2%20%7C%20RTAB--Map%20%7C%20BPU%20YOLO-purple">
+</p>
 
-- 上位机：RDK X5，运行 ROS 2、RTAB-Map、Nav2、BPU YOLO、语义地图节点等高层任务。
-- 下位机：Nano/底盘控制板，负责电机、转向舵机、编码器、IMU、电池状态与底盘实时控制。
-- 运动平台：阿克曼移动底盘，需要在导航参数、行为树和目标点选择上避免原地旋转式控制。
-- 感知设备：YDLIDAR X2 激光雷达、Astra RGB-D 相机、IMU、里程计。
-- 核心能力：自主建图、定位导航、自主探索、目标识别、语义地图、命名点位导航、硬件自检与调试。
+<p><strong>Indoor semantic interactive navigation robot workspace based on RDK X5 and ROS 2.</strong></p>
 
-整体闭环可以概括为：
+</div>
+
+This repository contains a ROS 2 workspace for an indoor mobile robot that closes the loop from perception, mapping, localization, navigation, visual recognition, and semantic map construction to natural-language task execution.
+
+The repository currently focuses on ROS 2 workspace source code, robot models, maps and semantic data, BPU vision models, debugging scripts, and test artifacts. Remote interaction capabilities described in the project report, such as Feishu bot integration, DeepSeek API calls, and image/video/audio feedback, belong to the larger system loop; this repository mainly contains the downstream robot capabilities that run on the vehicle.
+
+## Project Positioning
+
+Digua Robot is an indoor mobile robot system running on RDK X5:
+
+- Host computer: RDK X5, running ROS 2, RTAB-Map, Nav2, BPU YOLO, semantic mapping nodes, and other high-level tasks.
+- Low-level controller: Nano/chassis control board, responsible for motors, steering servo, encoders, IMU, battery status, and real-time chassis control.
+- Motion platform: Ackermann mobile chassis. Navigation parameters, behavior trees, and goal selection avoid differential-drive style in-place rotation.
+- Sensors: YDLIDAR X2 LiDAR, Astra RGB-D camera, IMU, and odometry.
+- Core capabilities: autonomous mapping, localization, navigation, exploration, object detection, semantic mapping, named-pose navigation, hardware checks, and debugging.
+
+The overall loop is:
 
 ```text
-传感器数据
-  -> ROS 2 驱动与 TF
+Sensor data
+  -> ROS 2 drivers and TF
   -> RTAB-Map / Nav2 / BPU YOLO
-  -> 几何地图 + 语义地图
-  -> 命名点位或语义目标
+  -> geometric map + semantic map
+  -> named pose or semantic target
   -> Nav2 NavigateToPose
   -> /cmd_vel
-  -> 底盘控制节点
-  -> 下位机与阿克曼底盘
+  -> base control node
+  -> low-level controller and Ackermann chassis
 ```
 
-## 当前能力
+## Current Capabilities
 
-- 底盘控制：`base_control_ros2` 订阅 `/cmd_vel`，对接底盘串口，并发布 `/odom`、`/imu`、`/battery` 等状态话题。
-- 一键启动：`digua_bringup` 组合机器人描述、底盘、EKF、YDLIDAR X2、Astra 相机和 RGB-D 同步节点。
-- 机器人模型：`digua_description` 提供 URDF/Xacro、RViz 配置和模型显示启动文件。
-- 建图定位：`digua_mapping` 使用 RTAB-Map 融合 RGB-D、激光雷达和 EKF 里程计，支持在线建图和 Nav2 地图保存。
-- 导航规划：`digua_navigation` 基于 Nav2 和 AMCL，包含阿克曼底盘相关参数、行为树、命名点位保存与导航脚本。
-- 自主探索：`digua_exploration` 实现 frontier exploration，通过 Nav2 自动前往未知边界区域。
-- 视觉识别：`digua_bpu_yolo` 封装 RDK X5 BPU YOLOv8 Open Images V7 推理，并向语义地图发布检测结果。
-- 语义地图：`digua_semantic_mapping` 将目标检测、深度图和 TF 转换融合为 `map` 坐标系下的语义目标。
-- 调试验证：`tools` 中包含底盘串口、雷达方向、IMU 方向、EKF 航向、硬件总检和地图导出等脚本。
+- Base control: `base_control_ros2` subscribes to `/cmd_vel`, communicates with the chassis serial port, and publishes `/odom`, `/imu`, `/battery`, and related status topics.
+- Bringup: `digua_bringup` composes robot description, base control, EKF, YDLIDAR X2, Astra camera, and RGB-D synchronization.
+- Robot description: `digua_description` provides URDF/Xacro, RViz configuration, and display launch files.
+- Mapping and localization: `digua_mapping` uses RTAB-Map to fuse RGB-D, LiDAR, and EKF odometry, supporting online mapping and Nav2 map saving.
+- Navigation: `digua_navigation` provides Nav2 and AMCL parameters, Ackermann-aware behavior trees, named-pose saving, goal navigation, and route scripts.
+- Autonomous exploration: `digua_exploration` implements frontier exploration and sends generated exploration goals to Nav2.
+- Visual recognition: `digua_bpu_yolo` wraps RDK X5 BPU YOLOv8 Open Images V7 inference and publishes detection results for the semantic mapping stack.
+- Semantic mapping: `digua_semantic_mapping` fuses object detection, depth images, and TF into semantic targets in the `map` frame.
+- Debugging and validation: `tools` contains scripts for base serial checks, LiDAR direction checks, IMU direction checks, EKF yaw checks, hardware inspection, map export, and semantic whitelist checks.
 
-## 系统特点
+## System Highlights
 
-这个工作空间不是单一算法 demo，而是围绕一台真实移动机器人整理出来的工程项目。它的价值主要体现在三点：
+This workspace is not a single algorithm demo. It is an engineering project organized around a real mobile robot. Its value is mainly in three loops:
 
-- **真实硬件闭环**：从 `/cmd_vel` 到下位机串口控制，再到 `/odom`、`/imu`、`/battery` 回传，底盘控制链路已经接入 ROS 2。
-- **建图导航闭环**：RTAB-Map 负责在线建图和视觉定位，Nav2 负责路径规划、局部避障和目标点执行，命名点位文件承担巡航和语义指令的中间层。
-- **视觉语义闭环**：YOLO 在 RDK X5 BPU 上推理，检测结果结合深度图和 TF 转换写入语义地图，再由语义导航节点转换为 Nav2 目标。
+- Real hardware loop: `/cmd_vel` is converted to low-level serial chassis commands, while `/odom`, `/imu`, and `/battery` are returned to ROS 2.
+- Mapping and navigation loop: RTAB-Map performs online mapping and visual localization, while Nav2 performs planning, local obstacle avoidance, and goal execution. Named poses serve as the intermediate layer for patrol and semantic commands.
+- Visual semantic loop: YOLO runs on the RDK X5 BPU, detections are fused with depth and TF into a semantic map, and semantic navigation nodes convert targets into Nav2 goals.
 
-因此，本仓库既可以作为比赛作品的工程源码，也适合作为 RDK X5、ROS 2 移动机器人、Nav2、RTAB-Map、BPU 视觉推理和语义地图的综合学习项目。
+The repository can be used as engineering source for a competition project, and also as a learning project for RDK X5, ROS 2 mobile robots, Nav2, RTAB-Map, BPU vision inference, and semantic mapping.
 
-## 仓库规模
+## Repository Size
 
-文件统计基于当前仓库快照，忽略隐藏目录，仅统计工程可见内容。仓库约有 **529 个文件**，其中 ROS 2 源码与第三方驱动主要集中在 `src/`。
+The file statistics below are based on the current repository snapshot and ignore hidden directories. The repository has about **530 visible files**, with ROS 2 source and third-party drivers mainly under `src/`.
 
-| 路径 | 文件数 | 作用 |
+| Path | Files | Purpose |
 | --- | ---: | --- |
-| `src/` | 430 | ROS 2 工作空间源码，包含自研机器人功能包、传感器驱动和第三方 SDK。 |
-| `calib_images/` | 50 | 相机或模型标定图片，当前为一组 `model_calib_20260514_210005` 标定样本。 |
-| `config/` | 23 | BPU/TROS 示例配置、类别列表和测试图片，主要用于模型推理或部署验证。 |
-| `tools/` | 10 | 硬件检查、传感器方向校验、地图集导出与语义白名单检查脚本。 |
-| `digua_maps/` | 4 | 地图与语义地图数据，包含当前地图名、语义地图 JSON 与备份。 |
-| `models/` | 3 | RDK X5 BPU 可运行的 YOLOv8s Open Images V7 模型、类别文件和转换日志。 |
-| `digua_navigation_data/` | 1 | 导航业务数据，当前保存 `named_poses.yaml` 命名点位。 |
-| `test_logs/` | 1 | 调试记录与测试日志，当前包含视觉 ICP/TF 静态测试日志。 |
-| `Ackermann_Steering_Chassis_Models/` | 1 | 阿克曼底盘机械 STEP 模型。 |
-| 根目录文件 | 6 | Git 配置、许可证、README、快速开始文档、相机反馈样例图等入口文件。 |
+| `src/` | 430 | ROS 2 workspace source, including project packages, sensor drivers, and third-party SDKs. |
+| `calib_images/` | 50 | Project-captured calibration images, currently one `model_calib_20260514_210005` sample set. |
+| `config/` | 23 | BPU/TROS sample configs, class lists, and test images for model inference or deployment validation. |
+| `tools/` | 10 | Hardware checks, sensor direction checks, map export, and semantic whitelist utilities. |
+| `digua_maps/` | 4 | Map and semantic map data, including the current map name, semantic map JSON, and backups. |
+| `models/` | 4 | RDK X5 BPU YOLOv8s Open Images V7 model, class file, conversion log, and model card. |
+| `digua_navigation_data/` | 1 | Navigation business data, currently `named_poses.yaml`. |
+| `test_logs/` | 1 | Debug and test logs, currently a visual ICP/TF static test log. |
+| `Ackermann_Steering_Chassis_Models/` | 1 | Project-authored Ackermann chassis STEP model. |
+| Root files | 8 | Git config, license, bilingual READMEs, quick start, third-party notices, and sample feedback image. |
 
-## ROS 2 包说明
+## ROS 2 Packages
 
-| 包或模块 | 文件数 | 类型 | 说明 |
+| Package or module | Files | Type | Description |
 | --- | ---: | --- | --- |
-| `base_control_ros2` | 18 | `ament_python` | 底盘串口控制节点，连接 `/cmd_vel` 与下位机，发布里程计、电池和 IMU 状态。 |
-| `digua_bringup` | 8 | `ament_cmake` | 真实机器人总启动入口，组合 URDF、底盘、EKF、雷达、相机和 RGB-D 同步。 |
-| `digua_description` | 6 | `ament_cmake` | 机器人 URDF/Xacro、RViz 与模型显示启动文件。 |
-| `digua_mapping` | 8 | `ament_cmake` | RTAB-Map 在线建图、定位和 Nav2 栅格地图保存启动文件。 |
-| `digua_navigation` | 21 | `ament_cmake` | Nav2/AMCL 参数、阿克曼行为树、命名点位保存、点位导航和巡航脚本。 |
-| `digua_exploration` | 8 | `ament_python` | Frontier 自主探索节点，根据未知边界生成 Nav2 目标点。 |
-| `digua_bpu_yolo` | 18 | `ament_python` | RDK X5 BPU YOLO 推理封装，发布 `/semantic/detections_json` 检测结果。 |
-| `digua_semantic_mapping` | 20 | `ament_python` | 语义观测、语义融合、语义地图查询、RViz marker 和语义目标导航。 |
-| `ros2_astra_camera` | 104 | `ament_cmake` | Astra/Orbbec RGB-D 相机 ROS 2 驱动和消息定义。 |
-| `ydlidar_ros2_driver` | 29 | `ament_cmake` | YDLIDAR ROS 2 驱动，当前包含 X2 等多型号参数文件。 |
-| `YDLidar-SDK` | 190 | CMake/SDK | YDLIDAR 官方 SDK 源码、示例和文档。 |
+| `base_control_ros2` | 18 | `ament_python` | Base serial control node connecting `/cmd_vel` to the low-level controller, while publishing odometry, battery, and IMU status. |
+| `digua_bringup` | 8 | `ament_cmake` | Main real-robot bringup entry, composing URDF, base, EKF, LiDAR, camera, and RGB-D sync. |
+| `digua_description` | 6 | `ament_cmake` | Robot URDF/Xacro, RViz config, and model display launch files. |
+| `digua_mapping` | 8 | `ament_cmake` | RTAB-Map online mapping, localization, and Nav2 grid map saving launch files. |
+| `digua_navigation` | 21 | `ament_cmake` | Nav2/AMCL parameters, Ackermann behavior tree, named-pose saving, point navigation, and route scripts. |
+| `digua_exploration` | 8 | `ament_python` | Frontier exploration node that generates Nav2 goals from unknown map boundaries. |
+| `digua_bpu_yolo` | 18 | `ament_python` | RDK X5 BPU YOLO inference wrapper that publishes `/semantic/detections_json`. |
+| `digua_semantic_mapping` | 20 | `ament_python` | Semantic observation, fusion, map query, RViz markers, and semantic target navigation. |
+| `ros2_astra_camera` | 104 | `ament_cmake` | Astra/Orbbec RGB-D camera ROS 2 driver and message definitions. |
+| `ydlidar_ros2_driver` | 29 | `ament_cmake` | YDLIDAR ROS 2 driver with parameter files for X2 and other models. |
+| `YDLidar-SDK` | 190 | CMake/SDK | Official YDLIDAR SDK source, examples, and documentation. |
 
-## 目录结构
+## Directory Layout
 
 ```text
 RDXx5robot-main/
-├── src/                              # ROS 2 工作空间源码
-│   ├── base_control_ros2/            # 底盘串口控制
-│   ├── digua_bringup/                # 真实机器人总启动
-│   ├── digua_description/            # 机器人模型与 RViz
-│   ├── digua_mapping/                # RTAB-Map 建图/定位
-│   ├── digua_navigation/             # Nav2 导航、命名点位和巡航
-│   ├── digua_exploration/            # frontier 自主探索
-│   ├── digua_bpu_yolo/               # RDK X5 BPU YOLO 推理
-│   ├── digua_semantic_mapping/       # 语义地图构建与语义目标导航
-│   ├── ros2_astra_camera/            # Astra RGB-D 相机驱动
-│   ├── ydlidar_ros2_driver/          # YDLIDAR ROS 2 驱动
+├── src/                              # ROS 2 workspace source
+│   ├── base_control_ros2/            # Base serial control
+│   ├── digua_bringup/                # Real-robot bringup
+│   ├── digua_description/            # Robot model and RViz
+│   ├── digua_mapping/                # RTAB-Map mapping/localization
+│   ├── digua_navigation/             # Nav2 navigation, named poses, and routes
+│   ├── digua_exploration/            # Frontier exploration
+│   ├── digua_bpu_yolo/               # RDK X5 BPU YOLO inference
+│   ├── digua_semantic_mapping/       # Semantic map construction and target navigation
+│   ├── ros2_astra_camera/            # Astra RGB-D camera driver
+│   ├── ydlidar_ros2_driver/          # YDLIDAR ROS 2 driver
 │   └── YDLidar-SDK/                  # YDLIDAR SDK
-├── digua_maps/                       # Nav2/RTAB-Map/语义地图数据
-├── digua_navigation_data/            # 命名点位和巡航点数据
-├── models/                           # BPU 模型文件
-├── config/                           # 模型推理配置与示例资源
-├── calib_images/                     # 标定图片
-├── tools/                            # 自检与调试工具
-├── test_logs/                        # 测试日志
-├── Ackermann_Steering_Chassis_Models/# 机械模型
-├── QUICK_START.md                    # 快速开始、常用命令和关键数据文件
-└── README.md                         # GitHub 首页说明
+├── digua_maps/                       # Nav2 / RTAB-Map / semantic map data
+├── digua_navigation_data/            # Named poses and route data
+├── models/                           # BPU model files
+├── config/                           # Model inference configs and sample resources
+├── calib_images/                     # Calibration images
+├── tools/                            # Check and debugging tools
+├── test_logs/                        # Test logs
+├── Ackermann_Steering_Chassis_Models/# Mechanical model
+├── QUICK_START.md                    # Quick start, common commands, and key data files
+├── THIRD_PARTY_NOTICES.md            # Third-party and asset notices
+├── README.zh-CN.md                   # Simplified Chinese README
+└── README.md                         # Default English README
 ```
 
-## 数据流与模块关系
+## Data Flow
 
 ```mermaid
 flowchart LR
-    subgraph Sensors["传感器与底盘"]
+    subgraph Sensors["Sensors and Base"]
         Lidar["YDLIDAR X2 /scan"]
         Camera["Astra RGB-D"]
-        Base["下位机 / 底盘"]
+        Base["Low-level Controller / Chassis"]
     end
 
-    subgraph Core["ROS 2 基础能力"]
+    subgraph Core["ROS 2 Core"]
         Bringup["digua_bringup"]
         Control["base_control_ros2"]
         EKF["robot_localization EKF"]
         Description["digua_description"]
     end
 
-    subgraph Nav["建图与导航"]
+    subgraph Nav["Mapping and Navigation"]
         Mapping["digua_mapping / RTAB-Map"]
         Navigation["digua_navigation / Nav2"]
         Exploration["digua_exploration"]
     end
 
-    subgraph Semantic["视觉与语义"]
+    subgraph Semantic["Vision and Semantics"]
         BPU["digua_bpu_yolo"]
         SemanticMap["digua_semantic_mapping"]
         NamedPoses["named_poses.yaml"]
@@ -158,33 +184,37 @@ flowchart LR
     Navigation --> Control
 ```
 
-## 快速开始与常用命令
+## Quick Start
 
-快速启动、分模块启动、建图、定位、导航、语义地图管理、命名点位导航以及关键数据文件说明已经独立到：
+Quick start, per-module launch commands, mapping, localization, navigation, semantic map management, named-pose navigation, and key data file notes live in:
 
-> [QUICK_START.md：快速开始与关键数据文件](./QUICK_START.md)
+> [QUICK_START.md: Quick start and key data files](./QUICK_START.md)
 
-主 README 只保留项目总览；实际调车、建图和比赛演示前建议直接打开上面的文档按场景查命令。
+The main README keeps the project overview. For real-robot debugging, mapping, and competition demos, use `QUICK_START.md` as the command reference.
 
-## 当前状态与下一步
+## Current Status and Next Steps
 
-当前仓库已经具备比较完整的移动机器人基础框架：底盘、雷达、相机、模型、建图、定位、导航、探索、视觉识别和语义地图模块都已落入 ROS 2 工作空间。下一步建议按规范化优先级推进：
+The repository already contains a relatively complete mobile robot base framework: base control, LiDAR, camera, model files, mapping, localization, navigation, exploration, visual recognition, and semantic mapping are all included in the ROS 2 workspace.
 
-1. 固化 `~/digua_ws` 路径约定，减少 launch 和脚本中的硬编码绝对路径。
-2. 为 `digua_bringup` 增加分场景启动入口，例如 `bringup_minimal`、`bringup_mapping`、`bringup_navigation`、`bringup_semantic`。
-3. 将飞书/DeepSeek/语音交互层独立成 ROS 2 包，例如 `digua_agent` 或 `digua_feishu_bridge`。
-4. 为每个自研包补充包内 README，说明节点、话题、参数、launch 命令和调试方法。
-5. 将地图、语义地图、命名点位和测试日志分成示例数据与运行数据，避免后续提交混杂。
-6. 增加统一的 bringup 自检脚本，自动检查串口、TF、话题、Nav2 lifecycle、BPU 模型和地图文件。
+Suggested next steps:
 
-## 维护约定
+1. Stabilize the `~/digua_ws` path convention and reduce hard-coded absolute paths in launch files and scripts.
+2. Add scenario-specific bringup entries in `digua_bringup`, such as `bringup_minimal`, `bringup_mapping`, `bringup_navigation`, and `bringup_semantic`.
+3. Split the Feishu, DeepSeek, and voice interaction layer into a dedicated ROS 2 package, such as `digua_agent` or `digua_feishu_bridge`.
+4. Add package-level READMEs for every project-maintained package, documenting nodes, topics, parameters, launch commands, and debugging methods.
+5. Separate maps, semantic maps, named poses, and test logs into sample data and runtime data to avoid mixing generated artifacts into later commits.
+6. Add a unified bringup self-check script for serial devices, TF, topics, Nav2 lifecycle, BPU models, and map files.
 
-- 自研 ROS 2 包统一放在 `src/digua_*` 或明确命名的功能目录中。
-- 第三方驱动或 SDK 保持独立目录，避免与自研节点混写。
-- 可复现实验数据、小样例和标定资源可以入库；长期运行产生的大地图、视频、日志建议外部归档。
-- 新增 launch 文件时应注明默认话题、默认路径、是否适合在 RDK X5 上直接运行。
-- 修改 Nav2、RTAB-Map、EKF 或 TF 参数后，应同步记录测试场景与现象，便于复现实车问题。
+## Maintenance Conventions
 
-## 许可证
+- Project-maintained ROS 2 packages live under `src/digua_*` or clearly named functional directories.
+- Third-party drivers and SDKs stay in independent directories and should not be mixed with project-maintained nodes.
+- Reproducible experimental data, small samples, and calibration resources may be kept in the repository; large maps, videos, and long-running logs should be archived externally.
+- New launch files should document default topics, default paths, and whether they are ready for direct use on RDK X5.
+- After changing Nav2, RTAB-Map, EKF, or TF parameters, record the test scene and observed behavior for reproducibility.
 
-根目录许可证为 Apache-2.0。部分第三方驱动、SDK 或模型文件可能带有各自许可证和使用限制，二次分发或比赛提交前应分别核对。
+## License
+
+Unless otherwise stated, original project code is licensed under the root [Apache-2.0](./LICENSE) license.
+
+This repository also contains official third-party drivers/SDKs, referenced or adapted code, model files, and runtime data. These files are not automatically covered by the root Apache-2.0 license. See [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) for sources, license status, and redistribution notes.
