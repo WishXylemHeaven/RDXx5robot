@@ -2,20 +2,6 @@
 
 # 地瓜机器人 / RDXx5robot
 
-<p>
-  <a href="./README.md"><strong>English</strong></a>
-  |
-  <a href="./README.zh-CN.md"><strong>简体中文</strong></a>
-</p>
-
-<p>
-  <img alt="License: Apache-2.0" src="https://img.shields.io/badge/License-Apache--2.0-blue">
-  <img alt="ROS 2" src="https://img.shields.io/badge/ROS%202-Humble-22314E">
-  <img alt="Platform: RDK X5" src="https://img.shields.io/badge/Platform-RDK%20X5-orange">
-  <img alt="Robot: Ackermann chassis" src="https://img.shields.io/badge/Robot-Ackermann%20Chassis-green">
-  <img alt="Stack: Nav2 RTAB-Map BPU YOLO" src="https://img.shields.io/badge/Stack-Nav2%20%7C%20RTAB--Map%20%7C%20BPU%20YOLO-purple">
-</p>
-
 <p><strong>基于 RDK X5 + ROS 2 的室内语义交互导航机器人工作空间。</strong></p>
 
 </div>
